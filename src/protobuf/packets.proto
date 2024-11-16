@@ -1,0 +1,259 @@
+syntax = "proto3";
+
+enum GlobalFailCode {
+    NONE_FAILCODE = 0;
+    UNKNOWN_ERROR = 1;
+    INVALID_REQUEST = 2;
+    AUTHENTICATION_FAILED = 3;
+    CREATE_ROOM_FAILED = 4;
+    JOIN_ROOM_FAILED = 5;
+    LEAVE_ROOM_FAILED = 6;
+    REGISTER_FAILED = 7;
+    ROOM_NOT_FOUND = 8;
+    CHARACTER_NOT_FOUND = 9;
+    CHARACTER_STATE_ERROR = 10;
+    CHARACTER_NO_CARD = 11;
+    INVALID_ROOM_STATE = 12;
+    NOT_ROOM_OWNER = 13;
+    ALREADY_USED_BBANG = 14;
+    INVALID_PHASE = 15;
+    CHARACTER_CONTAINED = 16;
+}
+
+/* 
+    패킷 명세
+*/
+message C2SRegisterRequest {
+    string email = 1;
+    string nickname = 2;
+    string password = 3;
+}
+
+message S2CRegisterResponse {
+    bool success = 1;
+    string message = 2;
+    GlobalFailCode failCode = 3;
+}
+
+message C2SLoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message S2CLoginResponse {
+    bool success = 1;
+    string message = 2;
+    string token = 3;
+    UserData myInfo = 4;
+    GlobalFailCode failCode = 5;
+
+}
+
+message C2SCreateRoomRequest {
+    string name = 1;
+    int32 maxUserNum = 2;
+}
+
+message S2CCreateRoomResponse {
+    bool success = 1;
+    RoomData room = 2;
+    GlobalFailCode failCode = 3;
+}
+
+message C2SGetRoomListRequest {
+    
+}
+
+message S2CGetRoomListResponse{
+    repeated RoomData rooms = 1;
+}
+
+message C2SJoinRoomRequest {
+    int32 roomId = 1;
+}
+
+message S2CJoinRoomResponse {
+    bool success = 1;
+    RoomData room = 2;
+    GlobalFailCode failCode = 3;
+}
+
+message S2CJoinRoomNotification {
+    UserData joinUser = 1;
+}
+
+message C2SJoinRandomRoomRequest {
+
+}
+
+message S2CJoinRandomRoomResponse {
+    bool success = 1;
+    RoomData room = 2;
+    GlobalFailCode failCode = 3;
+} 
+
+message C2SLeaveRoomRequest {
+
+}
+
+message S2CLeaveRoomResponse {
+    bool success = 1;
+    GlobalFailCode failCode = 2;
+}
+
+message S2CLeaveRoomNotification {
+    int64 userId = 1;
+}
+
+message C2SGamePrepareRequest {
+
+}
+
+message S2CGamePrepareResponse {
+    bool success = 1;
+    GlobalFailCode failCode = 2;
+} 
+
+message S2CGamePrepareNotification {
+    RoomData room = 1;
+}
+
+message C2SGameStartRequest {
+
+}
+
+message S2CGameStartResponse {
+    bool success = 1;
+    GlobalFailCode failCode = 2;
+}
+
+message S2CGameStartNotification {
+    GameStateData gameState = 1;
+    repeated UserData users = 2;
+    repeated CharacterPositionData characterPositions = 3;
+}
+
+message C2SPositionUpdateRequest {
+    double x = 1;
+    double y = 2;
+}
+
+message S2CPositionUpdateNotification {
+    repeated CharacterPositionData characterPositions = 1;
+}
+
+message C2SUseCardRequest {
+    int32 cardId = 1;
+    int64 targetUserId = 2; // 타겟 없으면 0
+}
+
+message S2CUseCardResponse { // 성공 여부만 반환하고 대상 유저 효과는 S2CUserUpdateNotification로 통지
+    bool success = 1;
+    GlobalFailCode failCode = 2;
+}
+
+message S2CUseCardNotification {
+    int32 cardId = 1;
+    int64 userId = 2;
+    int64 targetUserId = 3; // 타겟 없으면 0
+}
+
+message S2CUserUpdateNotification {
+    repeated UserData user = 1;
+}
+
+message S2CPhaseUpdateNotification {
+    PhaseType phaseType = 1; // DAY 1, EVENING 2, END 3
+    int64 nextPhaseAt = 2; // 다음 페이즈 시작 시점(밀리초 타임스탬프)
+    repeated CharacterPositionData characterPositions = 3; // 변경된 캐릭터 위치
+}
+
+message S2CGameWinNotification {
+    int32 ranking = 1;
+    string winner = 2;
+}
+
+message S2CGameEndNotification {
+    string loser = 1;
+    string winner = 2;
+}
+
+
+message GamePacket {
+    oneof payload {
+
+//  로그인 , 회원가입
+C2SRegisterRequest registerRequest= 1;
+     
+S2CRegisterResponse registerResponse=2;
+
+C2SLoginRequest loginRequest= 3;
+
+S2CLoginResponse loginResponse=4;
+
+
+//방 생성 , 리스트 , 참여 , 탈주 , 랜덤 매칭
+C2SCreateRoomRequest createRoomRequest = 5;
+
+S2CCreateRoomResponse createRoomResponse = 6;
+
+C2SGetRoomListRequest getRoomListRequest=7;
+
+S2CGetRoomListResponse getRoomListResponse =8;
+
+C2SJoinRoomRequest joinRoomRequest =9; 
+
+S2CJoinRoomResponse joinRoomResponse =10;
+
+S2CJoinRoomNotification joinRoomNotification =11;
+
+C2SJoinRandomRoomRequest joinRandomRoomRequest =12;
+
+S2CJoinRandomRoomResponse joinRandomRoomResponse =13;
+
+C2SLeaveRoomRequest leaveRoomRequest = 14;
+
+S2CLeaveRoomResponse leaveRoomResponse = 15;
+
+S2CLeaveRoomNotification leaveRoomNotification = 16;
+
+
+//게임 준비 , 시작
+C2SGamePrepareRequest gamePrepareRequest = 17;
+
+S2CGamePrepareResponse gamePrepareResponse = 18;
+
+S2CGamePrepareNotification gamePrepareNotification = 19;
+
+C2SGameStartRequest gameStartRequest = 20;
+
+S2CGameStartResponse gameStartResponse = 21;
+
+S2CGameStartNotification gameStartNotification = 22;
+
+
+//위치 동기화
+C2SPositionUpdateRequest positionUpdateRequest = 23;
+
+S2CPositionUpdateNotification positionUpdateNotification = 24;
+
+
+//카드 관련
+C2SUseCardRequest useCardRequest = 25;
+
+S2CUseCardResponse useCardResponse = 26; // 성공 여부만 반환하고 대상 유저 효과는 S2CUserUpdateNotification로 통지
+
+S2CUseCardNotification useCardNotification = 27;
+
+// 유저 상태 동기화
+S2CUserUpdateNotification userUpdateNotification = 33;
+
+S2CPhaseUpdateNotification phaseUpdateNotification = 34;
+
+S2CGameWinNotification gameWinNotification = 46;
+
+S2CGameEndNotification gameEndNotification =39;
+
+
+    }
+}
