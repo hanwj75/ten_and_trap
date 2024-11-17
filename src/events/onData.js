@@ -8,7 +8,7 @@ export const onData = (socket) => async (data) => {
   socket.buffer = Buffer.concat([socket.buffer, data]);
 
   while (socket.Bufferlength >= headers.TOTAL_PACKET_LENGTH) {
-    const payloadOneofCase = headers.PAYLOAD_ONEOF_CASE.readUint16BE(0);
+    const payloadOneofCase = headers.PAYLOAD_ONEOF_CASE.readUint16LE(0);
     const versionLength = socket.buffer.readUint8(PAYLOAD_ONEOF_CASE);
     const totalHeaderLength = headers.TOTAL_PACKET_LENGTH + headers.VERSION_LENGTH;
 
@@ -17,10 +17,10 @@ export const onData = (socket) => async (data) => {
       const version = socket.buffer.toString('utf8', versionOffset, versionOffset + versionLength);
 
       const sequenceOffset = versionOffset + versionLength;
-      const sequence = socket.buffer.readUInt32BE(sequenceOffset);
+      const sequence = socket.buffer.readUInt32LE(sequenceOffset);
 
       const payloadLengthOffset = sequenceOffset + headers.SEQUENCE;
-      const payloadlength = socket.buffer.readUInt32BE(payloadLengthOffset);
+      const payloadlength = socket.buffer.readUInt32LE(payloadLengthOffset);
 
       //패킷 전체 길이
       const packetLength = totalHeaderLength + payloadlength;
