@@ -4,7 +4,8 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "migrate": "node src/db/migration/createSchemas.js"
   },
   "repository": "https://github.com/hanwj75/ten_and_trap.git",
   "author": "hanwj75 <wjws9608@gmail.com>",

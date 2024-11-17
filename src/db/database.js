@@ -35,7 +35,7 @@ const createPool = (dbConfig) => {
 const pools = {
   USER_DB: createPool(database.USER_DB),
   RECORD_DB: createPool(database.RECORD_DB),
-  CARD_DB: createPool(database.CARD_DB),
+  // CARD_DB: createPool(database.CARD_DB),
 };
 
 export default pools;
