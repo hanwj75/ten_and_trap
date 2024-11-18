@@ -1,7 +1,7 @@
 import envFiles from '../constants/env.js';
 import {
-  PAYLOAD_LENGTH,
   PAYLOAD_ONEOF_CASE,
+  PAYLOAD_LENGTH,
   SEQUENCE,
   VERSION_LENGTH,
 } from '../constants/header.js';
