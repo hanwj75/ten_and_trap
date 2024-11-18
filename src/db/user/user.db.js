@@ -24,3 +24,8 @@ export const updateUserData = async (userId, newPassword) => {
   const [rows] = await pools.USER_DB.query(SQL_QUERIES.UPDATE_USER_DATA, [newPassword, userId]);
   return rows.affectedRows > 0;
 };
+
+export const updateUserLogin = async (userId) => {
+  const [rows] = await pools.USER_DB.query(SQL_QUERIES.UPDATE_USER_LOGIN, [userId]);
+  return toCamelCase(rows[0]);
+};

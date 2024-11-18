@@ -9,7 +9,7 @@ const createHeader = (payloadLength, packetType, sequence) => {
   const packetTypeBuffer = Buffer.alloc(PAYLOAD_ONEOF_CASE);
   packetTypeBuffer.writeUInt16BE(packetType, 0);
 
-  const versionBuffer = Buffer.from(CLIENT_VERSION);
+  const versionBuffer = Buffer.from(CLIENT_VERSION, 'utf8');
 
   const versionLengthBuffer = Buffer.alloc(VERSION_LENGTH);
   versionLengthBuffer.writeUInt8(versionBuffer.length, 0);

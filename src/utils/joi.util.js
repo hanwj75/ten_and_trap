@@ -38,6 +38,8 @@ export default class JoiUtils {
    * @returns
    */
   static async validateSignIn(body) {
+    const emailRegExp = /^[0-9a-z]*@[0-9a-z]([-_.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}$/;
+
     const joiSchema = joi.object({
       email: joi.string().regex(emailRegExp).required().messages({
         'string.base': 'Email은 문자열이어야 합니다.',
