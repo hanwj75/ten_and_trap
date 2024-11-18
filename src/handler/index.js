@@ -1,5 +1,5 @@
 import { packetType } from '../constants/header.js';
-
+import registerHandler from './user/registerHandler.js';
 const testFunction = () => {
   console.log(`이거 지우고 넣으시면 됩니다.`);
 };
@@ -7,7 +7,7 @@ const testFunction = () => {
 const handlers = {
   // 회원가입 및 로그인
   [packetType.REGISTER_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: registerHandler,
   },
   [packetType.LOGIN_REQUEST]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
