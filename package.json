@@ -21,6 +21,7 @@
     "mysql2": "^3.11.4",
     "protobufjs": "^7.4.0",
     "redis": "^4.7.0",
+    "redis-cli": "^2.1.2",
     "uuid": "^11.0.3"
   },
   "devDependencies": {
