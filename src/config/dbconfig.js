@@ -25,4 +25,9 @@ export const dbConfig = {
       name: env.DB3_NAME,
     },
   },
+  redis: {
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
+    password: env.REDIS_PASSWORD,
+  },
 };

@@ -27,6 +27,10 @@ const envFiles = {
     DB3_PASSWORD: process.env.DB3_PASSWORD || 'your_password',
     DB3_PORT: process.env.DB3_PORT || 3306,
     DB3_USER: process.env.DB3_USER || 'your_username',
+
+    REDIS_PORT: process.env.REDIS_PORT || 6379,
+    REDIS_HOST: process.env.REDIS_HOST || 'localhost',
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD || 'your_password',
   },
   redis: {
     // REDIS
