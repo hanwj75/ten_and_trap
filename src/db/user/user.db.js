@@ -13,8 +13,8 @@ export const findUserById = async (userId) => {
   return toCamelCase(rows[0]);
 };
 
-export const createUser = async (userId, password) => {
-  const [rows] = await pools.USER_DB.query(SQL_QUERIES.CREATE_USER, [userId, password]);
+export const createUser = async (userId, nickName, password) => {
+  const [rows] = await pools.USER_DB.query(SQL_QUERIES.CREATE_USER, [userId, nickName, password]);
   return toCamelCase(rows[0]);
 };
 
