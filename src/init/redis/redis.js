@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
 import { dbConfig } from '../../config/dbconfig.js';
+import { createRecord } from '../../db/record/record.db.js';
 dotenv.config();
 const env = dbConfig.redis;
 const redisClient = new Redis({
@@ -22,13 +23,53 @@ export const connectRedis = async (key, val, ex) => {
 await connectRedis();
 
 // 데이터 저장 / 사용예시 : setRedis("홍길동","퇴근시간",3600)
-const setRedis = async (key, val, ex) => {
-  await redisClient.set(key, val, 'EX', ex);
+export const setRedis = async (key, val, ex) => {
+  if (ex) {
+    return await redisClient.set(key, val, 'EX', ex);
+  } else {
+    return await redisClient.set(key, val);
+  }
 };
 
 // 데이터 조회 / 사용예시 : getRedis("홍길동")
-const getRedis = async (key) => {
-  await redisClient.get(key);
+export const getRedis = async (key) => {
+  return await redisClient.get(key);
+};
+
+// 여러 데이터 저장
+export const saddRedis = async (key, ...val) => {
+  return await redisClient.sadd(key, ...val);
+};
+
+console.log(saddRedis('박건순', '집', '컴퓨터'));
+//순위 저장
+
+export const recordRedis = async (win, lose) => {
+  //승리 스택 저장(push)
+  await redisClient.rpush('win', ...win);
+  //패배 스택 저장(shift)
+  await redisClient.lpush('lose', ...lose);
+};
+
+//게임 종료 후 결과 저장
+export const gameResultRedis = async () => {
+  const winner = await redisClient.lrange('win', 0, -1);
+  const losers = await redisClient.lrange('lose', 0, -1);
+  //최종 결과 합치기
+  //패배는 역순으로 저장
+  const resultConcatRedis = [...winner, ...losers.reverse()];
+  //최종 결과를 DB에 저장
+  await createRecord('userId', resultConcatRedis);
+
+  //redis 스택 초기화
+  await redisClient.del('winners');
+  await redisClient.del('losers');
+};
+
+//유저 정보를 해시로 저장하기
+export const hSetRedis = async (key, val) => {
+  await redisClient.hset(key, val);
+  return user;
 };
 
 // 순위 1~7등
