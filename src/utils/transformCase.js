@@ -1,5 +1,3 @@
-// src/utils/transformCase.js
-
 import camelCase from 'lodash/camelCase.js';
 
 export const toCamelCase = (obj) => {

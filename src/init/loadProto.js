@@ -12,7 +12,7 @@ export let GlobalFailCode = null;
 export const loadProtos = async () => {
   try {
     const root = await protobuf.load(PROTO_PATH);
-    GamePacket = await root.lookupType('GamePacket');
+    GamePacket = root.lookupType('GamePacket');
     if (GamePacket) {
       console.log(`성공적으로 로드됨: ${GamePacket}`);
     }

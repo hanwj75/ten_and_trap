@@ -1,16 +1,15 @@
-import { config } from '../../config/config.js';
+import config from '../../config/config.js';
 import envFiles from '../../constants/env.js';
-
-import { GamePacket } from '../../init/loadProtos.js';
+import { GamePacket } from '../../init/loadProto.js';
 
 const createHeader = (payloadLength, packetType, sequence) => {
-  const { PAYLOAD_ONEOF_CASE, VERSION_LENGTH, SEQUENCE, PAYLOAD_LENGTH } = config.header;
+  const { PAYLOAD_ONEOF_CASE, VERSION_LENGTH, SEQUENCE, PAYLOAD_LENGTH } = config.headers;
   const CLIENT_VERSION = envFiles.server.CLIENT_VERSION;
 
   const packetTypeBuffer = Buffer.alloc(PAYLOAD_ONEOF_CASE);
   packetTypeBuffer.writeUInt16BE(packetType, 0);
 
-  const versionBuffer = Buffer.from(CLIENT_VERSION);
+  const versionBuffer = Buffer.from(CLIENT_VERSION, 'utf8');
 
   const versionLengthBuffer = Buffer.alloc(VERSION_LENGTH);
   versionLengthBuffer.writeUInt8(versionBuffer.length, 0);
