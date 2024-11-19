@@ -1,6 +1,7 @@
 import { packetType } from '../constants/header.js';
-import registerHandler from './user/registerHandler.js';
-import loginHandler from './user/loginHandler.js';
+import { loginHandler } from './user/loginHandler.js';
+import { registerHandler } from './user/registerHandler.js';
+
 const testFunction = () => {
   console.log(`이거 지우고 넣으시면 됩니다.`);
 };

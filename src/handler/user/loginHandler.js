@@ -9,8 +9,15 @@ import { updateUserLogin, findUserById } from '../../db/user/user.db.js';
 import envFiles from '../../constants/env.js';
 import { addUser, findUser } from '../../sessions/user.session.js';
 import User from '../../classes/models/user.class.js';
+import { GlobalFailCode } from '../../init/loadProto.js';
 
-const loginHandler = async (socket, payload) => {
+/**
+ *
+ * @desc 로그인
+ * @author 박건순
+ *
+ */
+export const loginHandler = async (socket, payload) => {
   try {
     console.log(`login:${payload.loginRequest}`);
     const { email, password } = await JoiUtils.validateSignIn(payload.loginRequest);
@@ -18,20 +25,41 @@ const loginHandler = async (socket, payload) => {
     // 아이디 존재 검증
     const checkExistId = await findUserById(email);
     if (!checkExistId) {
-      makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', 2);
+      return makeResponse(
+        socket,
+        false,
+        '아이디 또는 비밀번호가 잘못되었습니다.',
+        '',
+        '',
+        GlobalFailCode.AUTHENTICATION_FAILED,
+      );
     }
 
     // 비밀번호 존재 검증
     const checkPassword = await bcrypt.compare(password, checkExistId.password);
     if (!checkPassword) {
-      makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', 2);
+      return makeResponse(
+        socket,
+        false,
+        '아이디 또는 비밀번호가 잘못되었습니다.',
+        '',
+        '',
+        GlobalFailCode.AUTHENTICATION_FAILED,
+      );
     }
 
     // 중복 로그인 방지
     const isExistUser = await findUser(checkExistId.nickName);
 
     if (isExistUser) {
-      makeResponse(socket, false, '이미 접속중인 아이디', '', '', 2);
+      return makeResponse(
+        socket,
+        false,
+        '이미 접속중인 아이디',
+        '',
+        '',
+        GlobalFailCode.AUTHENTICATION_FAILED,
+      );
     }
 
     // 유저 클래스 생성
@@ -50,7 +78,14 @@ const loginHandler = async (socket, payload) => {
 
     const totalToken = `Bearer ${accessToken}`;
     const userInfo = { id: checkExistId.email, nickname: checkExistId.nickName, character: {} };
-    makeResponse(socket, true, 'Login Success', totalToken, userInfo, 0);
+    return makeResponse(
+      socket,
+      true,
+      'Login Success',
+      totalToken,
+      userInfo,
+      GlobalFailCode.NONE_FAILCODE,
+    );
   } catch (err) {
     console.error(err);
   }
@@ -70,9 +105,5 @@ const makeResponse = (socket, success, message, token, userInfo, failCode) => {
   const loginResponse = createResponse(LoginResponse, packetType.LOGIN_RESPONSE, 0);
   socket.write(loginResponse);
 
-  if (failCode > 0) {
-    throw new CustomError(ErrorCodes.USER_NOT_FOUND, message);
-  }
+  return;
 };
-
-export default loginHandler;

@@ -5,14 +5,14 @@ import JoiUtils from '../../utils/joi.util.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
+import { GlobalFailCode } from '../../init/loadProto.js';
 /**
  *
  * @desc 회원가입
  * @author 박건순
  *
  */
-
-const registerHandler = async (socket, payload) => {
+export const registerHandler = async (socket, payload) => {
   try {
     const { email, nickname, password } = await JoiUtils.validateSignUp(payload.registerRequest);
     const checkExistId = await findUserById(email);
@@ -22,7 +22,7 @@ const registerHandler = async (socket, payload) => {
         registerResponse: {
           success: false,
           message: '이미 존재하는 ID',
-          failCode: 2,
+          failCode: GlobalFailCode.INVALID_REQUEST,
         },
       };
       const registerResponse = createResponse(responsePayload, packetType.REGISTER_RESPONSE, 0);
@@ -37,7 +37,7 @@ const registerHandler = async (socket, payload) => {
       registerResponse: {
         success: true,
         message: 'Register Success',
-        failCode: 0,
+        failCode: GlobalFailCode.NONE_FAILCODE,
       },
     };
 
@@ -47,5 +47,3 @@ const registerHandler = async (socket, payload) => {
     throw new CustomError(ErrorCodes.REGISTER_FAILED, err.message);
   }
 };
-
-export default registerHandler;
