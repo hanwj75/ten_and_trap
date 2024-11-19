@@ -1,4 +1,4 @@
-import { connectRedis } from '../redis/redis.js';
+import { connectRedis } from './redis/redis.js';
 import { loadProtos } from './loadProto.js';
 import testAllConnections from '../utils/db/testConnection.js';
 import pools from '../db/database.js';
