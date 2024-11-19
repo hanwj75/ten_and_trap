@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
 import JoiUtils from '../../utils/joi.util.js';
-import CustomError from '../../utils/error/customError.js';
-import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { packetType } from '../../constants/header.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import bcrypt from 'bcrypt';
@@ -31,7 +29,7 @@ export const loginHandler = async (socket, payload) => {
         '아이디 또는 비밀번호가 잘못되었습니다.',
         '',
         '',
-        GlobalFailCode.AUTHENTICATION_FAILED,
+        GlobalFailCode.values.AUTHENTICATION_FAILED,
       );
     }
 
@@ -44,7 +42,7 @@ export const loginHandler = async (socket, payload) => {
         '아이디 또는 비밀번호가 잘못되었습니다.',
         '',
         '',
-        GlobalFailCode.AUTHENTICATION_FAILED,
+        GlobalFailCode.values.AUTHENTICATION_FAILED,
       );
     }
 
@@ -58,7 +56,7 @@ export const loginHandler = async (socket, payload) => {
         '이미 접속중인 아이디',
         '',
         '',
-        GlobalFailCode.AUTHENTICATION_FAILED,
+        GlobalFailCode.values.AUTHENTICATION_FAILED,
       );
     }
 
@@ -84,7 +82,7 @@ export const loginHandler = async (socket, payload) => {
       'Login Success',
       totalToken,
       userInfo,
-      GlobalFailCode.NONE_FAILCODE,
+      GlobalFailCode.values.NONE_FAILCODE,
     );
   } catch (err) {
     console.error(err);
