@@ -8,7 +8,7 @@ import envFiles from '../../constants/env.js';
 import { addUser, findUser } from '../../sessions/user.session.js';
 import User from '../../classes/models/user.class.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
-
+import { redis } from '../../init/redis/redis.js';
 /**
  *
  * @desc 로그인
@@ -75,7 +75,8 @@ export const loginHandler = async (socket, payload) => {
     );
 
     const totalToken = `Bearer ${accessToken}`;
-    const userInfo = { id: checkExistId.email, nickname: checkExistId.nickName, character: {} };
+    const userInfo = { id: email, nickname: checkExistId.nickName, character: {} };
+    redis.setRedis(email, JSON.stringify(userInfo));
     return makeResponse(
       socket,
       true,
