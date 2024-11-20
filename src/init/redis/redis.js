@@ -6,8 +6,6 @@ import { createRecord } from '../../db/record/record.db.js';
 dotenv.config();
 const env = dbConfig.redis;
 
-const ROOM_ID = 'Room Id';
-const ROOMS = 'rooms';
 const redisClient = new Redis({
   host: env.host, // Redis 클라우드 호스트
   port: env.port, // Redis 클라우드 포트
@@ -88,9 +86,9 @@ export const redis = {
   // 1
   //유저를 룸에 넣어줌
 
-  addRoomToUser: async (roomId, userId) => {
+  addUserToRoom: async (roomId, userId) => {
     try {
-      const key = `${ROOM_ID}:${roomId}`;
+      const key = roomId;
       await redisClient.sadd(key, userId);
       await redisClient.expire(key, 3600);
     } catch (err) {
@@ -98,9 +96,9 @@ export const redis = {
     }
   },
   //룸 ID를 담은 rooms배열
-  addRoomsToRoom: async (rooms, roomId) => {
+  addRoomToRooms: async (rooms, roomId) => {
     try {
-      const key = `${ROOMS}:${rooms}`;
+      const key = rooms;
       await redisClient.sadd(key, roomId);
       await redisClient.expire(key, 3600);
     } catch (err) {
@@ -110,7 +108,7 @@ export const redis = {
   //유저가 나간다면 룸에서 삭제
   removeUser: async (roomId, userId) => {
     try {
-      await redisClient.srem(`${ROOM_ID}:${roomId}`, userId);
+      await redisClient.srem(roomId, userId);
     } catch (err) {
       console.error('Redis error: ', err);
     }
@@ -118,7 +116,7 @@ export const redis = {
   //게임 종료시 룸 삭제
   deleteSession: async (roomId) => {
     try {
-      await redisClient.del(`${ROOM_ID}:${roomId}`);
+      await redisClient.del(roomId);
     } catch (err) {
       console.error('Redis error: ', err);
     }

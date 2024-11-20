@@ -44,27 +44,26 @@ export const createRoomHandler = async (socket, payload) => {
   const roomId = uuidv4();
 
   const users = await getUserBySocket(socket);
-
-  let rooms = null;
+  if (!users) {
+    console.error('유저를 찾을 수 없습니다.');
+  }
   const userInfo = {
     id: users.userId,
     nickname: users.nickName,
     character: users.character,
   };
-  if (rooms) {
-    await redis.addRoomToUser('rooms', roomId);
-    await redis.addRoomsToRoom(roomId, users.nickName);
-  } else {
-    await redis.saddRedis('rooms', roomId);
-    await redis.saddRedis(roomId, users.nickName);
-  }
   //방 이름과 최대인원수를 담아 요청이오면 나는 success:true , roomData:id, ownerId, name, maxUserNum, state, users , failCode만 보내주면 방은 생길듯
   const newRoom = new Room(roomId, users.userId, name, maxUserNum, 0, userInfo);
+  const jsonRoomData = JSON.stringify(newRoom);
+  const setRoom = await redis.saddRedis('rooms', jsonRoomData);
+  const roomGet = await redis.getRedisSadd('rooms');
+  const parsedData = roomGet.map((item) => JSON.parse(item));
+
   addRoom(newRoom);
   const createRoomPayload = {
     createRoomResponse: {
       success: true,
-      message: `방 생성 성공_${roomId}`,
+      message: `방 생성 성공_${parsedData.name}`,
       room: newRoom,
       failCode: GlobalFailCode.values.NONE_FAILCODE,
     },
@@ -84,7 +83,7 @@ export const createRoomHandler = async (socket, payload) => {
 export const getRoomListHandler = (socket) => {
   try {
     const curRoom = getAllRoom();
-    console.log(curRoom);
+
     const getRoomListPayload = {
       getRoomListResponse: {
         rooms: curRoom,
@@ -123,15 +122,21 @@ export const joinRoomHandler = (socket, payload) => {};
  */
 
 export const joinRandomRoomHandler = async (socket, payload) => {
-  const roomsArray = await redis.getRedisSadd('rooms');
-  const roomId = await redis.getRedisSadd(roomsArray[0]);
-  if (roomId) {
-  }
+  const roomGet = await redis.getRedisSadd('rooms');
+  const parsedData = roomGet.map((item) => JSON.parse(item));
+
+  const roomIndex = Math.floor(Math.random() * roomGet.length);
+
+  const randomRoom = parsedData[roomIndex];
+  const userData = JSON.stringify(randomRoom.users);
+  // 룸에 유저 추가
+  await redis.addUserToRoom(randomRoom.id, userData);
+  const roomData = JSON.stringify(randomRoom);
   const joinRandomRoomPayload = {
     joinRandomRoomResponse: {
       success: true,
-      message: `랜덤 매칭 성공!${roomId}`,
-      room: roomId,
+      message: `랜덤 매칭 성공!${randomRoom}`,
+      room: roomData,
       failCode: GlobalFailCode.values.NONE_FAILCODE,
     },
   };
