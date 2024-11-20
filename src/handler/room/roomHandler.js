@@ -81,10 +81,15 @@ export const createRoomHandler = async (socket, payload) => {
 }
 
  */
-export const getRoomListHandler = (socket) => {
+export const getRoomListHandler = async (socket) => {
   try {
-    const curRoom = getAllRoom();
-    console.log(curRoom);
+    const roomGet = await redis.getRedisSadd('rooms');
+    const curRoom = roomGet.map((item) => JSON.parse(item));
+
+    // session에서 가져오는 방법
+    // const curRoom = getAllRoom();
+    // console.log(curRoom);
+
     const getRoomListPayload = {
       getRoomListResponse: {
         rooms: curRoom,
