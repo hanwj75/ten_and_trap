@@ -7,6 +7,7 @@ dotenv.config();
 const env = dbConfig.redis;
 
 const ROOM_ID = 'Room Id';
+const ROOMS = 'rooms';
 const redisClient = new Redis({
   host: env.host, // Redis 클라우드 호스트
   port: env.port, // Redis 클라우드 포트
@@ -75,6 +76,7 @@ export const redis = {
   },
 
   /**
+   * @desc 유저를 룸 세션에서 관리하는부분
    * @todo
    * 1.유저의 세션을 배열로 만든다
    * 2.룸 세션도 배열로 만든다.
@@ -86,10 +88,20 @@ export const redis = {
   // 1
   //유저를 룸에 넣어줌
 
-  addUser: async (roomId, userId) => {
+  addRoomToUser: async (roomId, userId) => {
     try {
       const key = `${ROOM_ID}:${roomId}`;
       await redisClient.sadd(key, userId);
+      await redisClient.expire(key, 3600);
+    } catch (err) {
+      console.error('Redis error: ', err);
+    }
+  },
+  //룸 ID를 담은 rooms배열
+  addRoomsToRoom: async (rooms, roomId) => {
+    try {
+      const key = `${ROOMS}:${rooms}`;
+      await redisClient.sadd(key, roomId);
       await redisClient.expire(key, 3600);
     } catch (err) {
       console.error('Redis error: ', err);
@@ -107,8 +119,18 @@ export const redis = {
   deleteSession: async (roomId) => {
     try {
       await redisClient.del(`${ROOM_ID}:${roomId}`);
-    } catch (error) {
-      console.error('Redis error: ', error);
+    } catch (err) {
+      console.error('Redis error: ', err);
+    }
+  },
+
+  //레디스 sadd배열 키값으로 조회하기
+  getRedisSadd: async (key) => {
+    try {
+      const members = await redisClient.smembers(key);
+      return members;
+    } catch (err) {
+      console.error('Redis error: ', err);
     }
   },
 
