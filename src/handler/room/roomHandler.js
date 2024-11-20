@@ -70,7 +70,7 @@ export const createRoomHandler = async (socket, payload) => {
 }
 
  */
-export const getRoomListHandler = (socket, payload) => {
+export const getRoomListHandler = (socket) => {
   try {
     const curRoom = getAllRoom();
     console.log(curRoom);
