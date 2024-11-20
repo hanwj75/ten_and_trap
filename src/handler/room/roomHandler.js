@@ -18,7 +18,7 @@
 
 import Room from '../../classes/models/room.class.js';
 import { v4 as uuidv4 } from 'uuid';
-import { getUserByUserId } from '../../sessions/user.session.js';
+import { getUserBySocket } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
@@ -36,18 +36,24 @@ import { packetType } from '../../constants/header.js';
 }
 
  */
-export const createRoomHandler = (socket, payload) => {
+export const createRoomHandler = async (socket, payload) => {
   const { name, maxUserNum } = payload;
   const roomId = uuidv4();
-  const users = getUserByUserId(socket.nickName);
+  const users = await getUserBySocket(socket);
+
+  const userInfo = {
+    id: users.userId,
+    nickname: users.nickName,
+    character: users.character,
+  };
   //방 이름과 최대인원수를 담아 요청이오면 나는 success:true , roomData:id, ownerId, name, maxUserNum, state, users , failCode만 보내주면 방은 생길듯
-  const newRoom = new Room(roomId, users, name, maxUserNum, 0, [users]);
+  const newRoom = new Room(roomId, users.userId, name, maxUserNum, 0, userInfo);
   const createRoomPayload = {
     createRoomResponse: {
       success: true,
       message: `방 생성 성공_${roomId}`,
-      RoomData: newRoom,
-      failCode: GlobalFailCode.values.CREATE_ROOM_FAILED,
+      room: newRoom,
+      failCode: GlobalFailCode.values.NONE_FAILCODE,
     },
   };
   socket.write(createResponse(createRoomPayload, packetType.CREATE_ROOM_RESPONSE, 6));
