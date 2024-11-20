@@ -22,31 +22,43 @@ import { getUserBySocket } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
+import { redis } from '../../init/redis/redis.js';
 import { addRoom, getAllRoom } from '../../sessions/room.session.js';
+
 /**
  * @dest 방 만들기
  * @author 한우종
  * @todo 방 생성하기 요청 들어올시 방 생성해주기
- * message S2CCreateRoomResponse {
-    bool success = 1;
-    RoomData room = 2;
-    GlobalFailCode failCode = 3;
-    1.socket을통해 유저세션에서 유저데이터 가져오기
-    2.가져온 유저 데이터에 유저아이디를 통해 레디스 키값찾기로 유저아이디 찾기
-    3.찾은유저데이터를 뉴룸에 할당
+ * 1.방을 만들때 rooms가없다면 rooms만든다.
+ * 2. rooms가 있다면 랜덤인덱스에 해당하는 방에 유저를 푸시한다
+ * 
+ * .room을 만든다. room에는 방장이있다. 이값을 rooms에저장한다.
+ * 1. rooms를 조회한다. 
+ * 2. rooms에 room이없다면 room을 만든다.
+ * 
 }
+*/
 
- */
 export const createRoomHandler = async (socket, payload) => {
+
   const { name, maxUserNum } = payload.createRoomRequest;
   const roomId = uuidv4();
-  const users = await getUserBySocket(socket);
 
+  const users = await getUserBySocket(socket);
+  const roomId = uuidv4();
+  let rooms = null;
   const userInfo = {
     id: users.userId,
     nickname: users.nickName,
     character: users.character,
   };
+  if (rooms) {
+    await redis.addRoomToUser('rooms', roomId);
+    await redis.addRoomsToRoom(roomId, users.nickName);
+  } else {
+    await redis.saddRedis('rooms', roomId);
+    await redis.saddRedis(roomId, users.nickName);
+  }
   //방 이름과 최대인원수를 담아 요청이오면 나는 success:true , roomData:id, ownerId, name, maxUserNum, state, users , failCode만 보내주면 방은 생길듯
   const newRoom = new Room(roomId, users.userId, name, maxUserNum, 0, userInfo);
   addRoom(newRoom);
@@ -58,7 +70,7 @@ export const createRoomHandler = async (socket, payload) => {
       failCode: GlobalFailCode.values.NONE_FAILCODE,
     },
   };
-  socket.write(createResponse(createRoomPayload, packetType.CREATE_ROOM_RESPONSE, 6));
+  socket.write(createResponse(createRoomPayload, packetType.CREATE_ROOM_RESPONSE, 0));
 };
 
 /**
@@ -105,9 +117,27 @@ export const joinRoomHandler = (socket, payload) => {};
     bool success = 1;
     RoomData room = 2;
     GlobalFailCode failCode = 3;
+  3. rooms가 있다면 그 인덱스값을 랜덤값으로 응답한다.
+ * 4. 인원수 체크는 state값이 0인지1인지로 판단
+ * 5. rooms 조회 , roomId 조회 , Math.floor(Math.random(0)*rooms.length)
 } 
  */
-export const joinRandomRoomHandler = (socket, payload) => {};
+
+export const joinRandomRoomHandler = async (socket, payload) => {
+  const roomsArray = await redis.getRedisSadd('rooms');
+  const roomId = await redis.getRedisSadd(roomsArray[0]);
+  if (roomId) {
+  }
+  const joinRandomRoomPayload = {
+    joinRandomRoomResponse: {
+      success: true,
+      message: `랜덤 매칭 성공!${roomId}`,
+      room: roomId,
+      failCode: GlobalFailCode.values.NONE_FAILCODE,
+    },
+  };
+  socket.write(createResponse(joinRandomRoomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+};
 
 /**
  * @dest 방 나가기
