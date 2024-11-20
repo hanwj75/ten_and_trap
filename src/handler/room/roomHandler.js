@@ -23,6 +23,7 @@ import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
+import { addRoom, getAllRoom } from '../../sessions/room.session.js';
 
 /**
  * @dest 방 만들기
@@ -36,11 +37,13 @@ import { redis } from '../../init/redis/redis.js';
  * 2. rooms에 room이없다면 room을 만든다.
  * 
 }
-
 */
 
 export const createRoomHandler = async (socket, payload) => {
-  const { name, maxUserNum } = payload;
+
+  const { name, maxUserNum } = payload.createRoomRequest;
+  const roomId = uuidv4();
+
   const users = await getUserBySocket(socket);
   const roomId = uuidv4();
   let rooms = null;
@@ -58,6 +61,7 @@ export const createRoomHandler = async (socket, payload) => {
   }
   //방 이름과 최대인원수를 담아 요청이오면 나는 success:true , roomData:id, ownerId, name, maxUserNum, state, users , failCode만 보내주면 방은 생길듯
   const newRoom = new Room(roomId, users.userId, name, maxUserNum, 0, userInfo);
+  addRoom(newRoom);
   const createRoomPayload = {
     createRoomResponse: {
       success: true,
@@ -71,14 +75,27 @@ export const createRoomHandler = async (socket, payload) => {
 
 /**
  * @dest 방 리스트 조회
- * @author 한우종
+ * @author 박건순
  * @todo 현재 존재하는 방 목록 보여주기
  * message S2CGetRoomListResponse{
     repeated RoomData rooms = 1;
 }
 
  */
-export const getRoomListHandler = (socket, payload) => {};
+export const getRoomListHandler = (socket) => {
+  try {
+    const curRoom = getAllRoom();
+    console.log(curRoom);
+    const getRoomListPayload = {
+      getRoomListResponse: {
+        rooms: curRoom,
+      },
+    };
+    socket.write(createResponse(getRoomListPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
+  } catch (err) {
+    console.error(err);
+  }
+};
 
 /**
  * @dest 방 들어가기
