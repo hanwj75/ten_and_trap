@@ -40,12 +40,11 @@ import { addRoom, getAllRoom } from '../../sessions/room.session.js';
 */
 
 export const createRoomHandler = async (socket, payload) => {
-
   const { name, maxUserNum } = payload.createRoomRequest;
   const roomId = uuidv4();
 
   const users = await getUserBySocket(socket);
-  const roomId = uuidv4();
+
   let rooms = null;
   const userInfo = {
     id: users.userId,
