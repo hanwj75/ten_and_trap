@@ -16,6 +16,12 @@
 // INVALID_PHASE = 15;
 // CHARACTER_CONTAINED = 16;
 
+import Room from '../../classes/models/room.class.js';
+import { v4 as uuidv4 } from 'uuid';
+import { getUserByUserId } from '../../sessions/user.session.js';
+import { GlobalFailCode } from '../../init/loadProto.js';
+import { createResponse } from '../../utils/response/createResponse.js';
+import { packetType } from '../../constants/header.js';
 /**
  * @dest 방 만들기
  * @author 한우종
@@ -24,10 +30,28 @@
     bool success = 1;
     RoomData room = 2;
     GlobalFailCode failCode = 3;
+    1.socket을통해 유저세션에서 유저데이터 가져오기
+    2.가져온 유저 데이터에 유저아이디를 통해 레디스 키값찾기로 유저아이디 찾기
+    3.찾은유저데이터를 뉴룸에 할당
 }
 
  */
-export const createRoomHandler = (socket, payload) => {};
+export const createRoomHandler = (socket, payload) => {
+  const { name, maxUserNum } = payload;
+  const roomId = uuidv4();
+  const users = getUserByUserId(socket.nickName);
+  //방 이름과 최대인원수를 담아 요청이오면 나는 success:true , roomData:id, ownerId, name, maxUserNum, state, users , failCode만 보내주면 방은 생길듯
+  const newRoom = new Room(roomId, users, name, maxUserNum, 0, [users]);
+  const createRoomPayload = {
+    createRoomResponse: {
+      success: true,
+      message: `방 생성 성공_${roomId}`,
+      RoomData: newRoom,
+      failCode: GlobalFailCode.values.CREATE_ROOM_FAILED,
+    },
+  };
+  socket.write(createResponse(createRoomPayload, packetType.CREATE_ROOM_RESPONSE, 6));
+};
 
 /**
  * @dest 방 리스트 조회
