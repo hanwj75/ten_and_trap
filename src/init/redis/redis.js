@@ -2,7 +2,6 @@ import Redis from 'ioredis';
 import dotenv from 'dotenv';
 import { dbConfig } from '../../config/dbconfig.js';
 import { createRecord } from '../../db/record/record.db.js';
-import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 const env = dbConfig.redis;
@@ -75,6 +74,7 @@ export const redis = {
     return user;
   },
 
+
   /**
    * @todo
    * 1.유저의 세션을 배열로 만든다
@@ -110,6 +110,14 @@ export const redis = {
       await redisClient.del(`${ROOM_ID}:${roomId}`);
     } catch (error) {
       console.error('Redis error: ', error);
+
+  // 키값으로 레디스 데이터 삭제하기
+  delRedisByKey: async (key) => {
+    try {
+      await redisClient.del(key);
+    } catch (err) {
+      console.error(err);
+
     }
   },
 };

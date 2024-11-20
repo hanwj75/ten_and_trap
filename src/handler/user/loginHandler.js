@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
 import JoiUtils from '../../utils/joi.util.js';
-import CustomError from '../../utils/error/customError.js';
-import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { packetType } from '../../constants/header.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import bcrypt from 'bcrypt';
@@ -10,7 +8,7 @@ import envFiles from '../../constants/env.js';
 import { addUser, findUser } from '../../sessions/user.session.js';
 import User from '../../classes/models/user.class.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
-
+import { redis } from '../../init/redis/redis.js';
 /**
  *
  * @desc 로그인
@@ -31,7 +29,7 @@ export const loginHandler = async (socket, payload) => {
         '아이디 또는 비밀번호가 잘못되었습니다.',
         '',
         '',
-        GlobalFailCode.AUTHENTICATION_FAILED,
+        GlobalFailCode.values.AUTHENTICATION_FAILED,
       );
     }
 
@@ -44,7 +42,7 @@ export const loginHandler = async (socket, payload) => {
         '아이디 또는 비밀번호가 잘못되었습니다.',
         '',
         '',
-        GlobalFailCode.AUTHENTICATION_FAILED,
+        GlobalFailCode.values.AUTHENTICATION_FAILED,
       );
     }
 
@@ -58,7 +56,7 @@ export const loginHandler = async (socket, payload) => {
         '이미 접속중인 아이디',
         '',
         '',
-        GlobalFailCode.AUTHENTICATION_FAILED,
+        GlobalFailCode.values.AUTHENTICATION_FAILED,
       );
     }
 
@@ -77,14 +75,15 @@ export const loginHandler = async (socket, payload) => {
     );
 
     const totalToken = `Bearer ${accessToken}`;
-    const userInfo = { id: checkExistId.email, nickname: checkExistId.nickName, character: {} };
+    const userInfo = { id: email, nickname: checkExistId.nickName, character: {} };
+    redis.setRedis(email, JSON.stringify(userInfo));
     return makeResponse(
       socket,
       true,
       'Login Success',
       totalToken,
       userInfo,
-      GlobalFailCode.NONE_FAILCODE,
+      GlobalFailCode.values.NONE_FAILCODE,
     );
   } catch (err) {
     console.error(err);
