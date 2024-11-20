@@ -1,7 +1,7 @@
 import { packetType } from '../constants/header.js';
 import { loginHandler } from './user/loginHandler.js';
 import { registerHandler } from './user/registerHandler.js';
-
+import { createRoomHandler } from './room/roomHandler.js';
 const testFunction = () => {
   console.log(`이거 지우고 넣으시면 됩니다.`);
 };
@@ -17,7 +17,7 @@ const handlers = {
 
   //방만들기 및 참여하기 나가기
   [packetType.CREATE_ROOM_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: createRoomHandler,
   },
   [packetType.GET_ROOMLIST_REQUEST]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,

@@ -9,6 +9,7 @@ import { addUser, findUser } from '../../sessions/user.session.js';
 import User from '../../classes/models/user.class.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
+import Character from '../../classes/models/character.class.js';
 /**
  *
  * @desc 로그인
@@ -60,8 +61,10 @@ export const loginHandler = async (socket, payload) => {
       );
     }
 
+    // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
+    const loginCharacter = new Character(0, 0, 5, 0, {}, 0, 0, {}, 0, 0);
     // 유저 클래스 생성
-    const loginUser = new User(socket, email, checkExistId.nickName);
+    const loginUser = new User(socket, email, checkExistId.nickName, loginCharacter);
     await addUser(loginUser);
     await updateUserLogin(email);
 
@@ -75,7 +78,11 @@ export const loginHandler = async (socket, payload) => {
     );
 
     const totalToken = `Bearer ${accessToken}`;
-    const userInfo = { id: email, nickname: checkExistId.nickName, character: {} };
+    const userInfo = {
+      id: email,
+      nickname: checkExistId.nickName,
+      character: { characterType: 1 },
+    };
     redis.setRedis(email, JSON.stringify(userInfo));
     return makeResponse(
       socket,
