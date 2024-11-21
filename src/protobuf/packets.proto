@@ -228,11 +228,11 @@ C2SJoinRoomRequest joinRoomRequest =9;
 
 S2CJoinRoomResponse joinRoomResponse =10;
 
-S2CJoinRoomNotification joinRoomNotification =11;
+C2SJoinRandomRoomRequest joinRandomRoomRequest =11;
 
-C2SJoinRandomRoomRequest joinRandomRoomRequest =12;
+S2CJoinRandomRoomResponse joinRandomRoomResponse =12;
 
-S2CJoinRandomRoomResponse joinRandomRoomResponse =13;
+S2CJoinRoomNotification joinRoomNotification =13;
 
 C2SLeaveRoomRequest leaveRoomRequest = 14;
 

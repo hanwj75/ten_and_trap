@@ -31,6 +31,7 @@ const createHeader = (payloadLength, packetType, sequence) => {
 
 export const createResponse = (payload, packetType, sequence) => {
   const payloadBuffer = GamePacket.encode(GamePacket.create(payload)).finish();
+  // const test = GamePacket.decode(payloadBuffer); //response 데이터 확인
 
   const header = createHeader(payloadBuffer.length, packetType, sequence);
 
