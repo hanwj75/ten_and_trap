@@ -1,43 +1,24 @@
-// NONE_FAILCODE = 0;
-// UNKNOWN_ERROR = 1;
-// INVALID_REQUEST = 2;
-// AUTHENTICATION_FAILED = 3;
-// CREATE_ROOM_FAILED = 4;
-// JOIN_ROOM_FAILED = 5;
-// LEAVE_ROOM_FAILED = 6;
-// REGISTER_FAILED = 7;
-// ROOM_NOT_FOUND = 8;
-// CHARACTER_NOT_FOUND = 9;
-// CHARACTER_STATE_ERROR = 10;
-// CHARACTER_NO_CARD = 11;
-// INVALID_ROOM_STATE = 12;
-// NOT_ROOM_OWNER = 13;
-// ALREADY_USED_BBANG = 14;
-// INVALID_PHASE = 15;
-// CHARACTER_CONTAINED = 16;
-
 import Room from '../../classes/models/room.class.js';
-import { v4 as uuidv4 } from 'uuid';
-import { getUserBySocket } from '../../sessions/user.session.js';
+import { getUserBySocket, getUserByUserId } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
-import { addRoom, getAllRoom } from '../../sessions/room.session.js';
 
 /**
  * @dest 방 만들기
  * @author 한우종
  * @todo 방 생성하기 요청 들어올시 방 생성해주기
- * 
+ * !!!!!!!!!!!!!!
+ * roomId 가변으로 바꿔줘야함
 }
 */
 
 export const createRoomHandler = async (socket, payload) => {
   const { name, maxUserNum } = payload.createRoomRequest;
-  const roomId = 1;
 
   const users = await getUserBySocket(socket);
+  const roomId = 1;
 
   if (!users) {
     console.error(`존재하지 않는 유저입니다.`);
@@ -61,11 +42,13 @@ export const createRoomHandler = async (socket, payload) => {
       },
     };
     socket.write(createResponse(createRoomPayload, packetType.CREATE_ROOM_RESPONSE, 0));
+
     return;
   }
 
   //방 이름과 최대인원수를 담아 요청이오면 나는 success:true , roomData:id, ownerId, name, maxUserNum, state, users , failCode만 보내주면 방은 생길듯
   const newRoom = new Room(roomId, userInfo.id, name, maxUserNum, 0, [userInfo]);
+
   /**
    * newRoom에서 저장해야할 값
    * 
@@ -170,12 +153,20 @@ export const joinRandomRoomHandler = async (socket, payload) => {
     console.log('방 키들:', roomKeys);
   } else {
     console.log('해당 방이 존재하지 않습니다.');
+    const joinRandomRoomPayload = {
+      joinRandomRoomResponse: {
+        success: false,
+        room: null,
+        failCode: GlobalFailCode.values.ROOM_NOT_FOUND,
+      },
+    };
+    socket.write(createResponse(joinRandomRoomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+    return;
   }
   const randomIndex = Math.floor(Math.random() * roomKeys.length);
   const randomRoomKey = roomKeys[randomIndex];
 
   const roomData = await redis.getAllFieldsFromHash(randomRoomKey);
-  console.log(`🤪 ~ file: roomHandler.js:178 ~ joinRandomRoomHandler ~ roomData:`, roomData);
 
   //게임이 시작한 경우
 
@@ -189,6 +180,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       },
     };
     socket.write(createResponse(joinRandomRoomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+    return;
   }
   roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
   const newUserInfo = {
@@ -197,17 +189,8 @@ export const joinRandomRoomHandler = async (socket, payload) => {
     character: user.character,
   };
 
-  // 유저를 방의 유저 목록에 추가
-  roomData.users.push(newUserInfo);
-
-  // 방 정보 업데이트
-  await redis.addRoomRedis(randomRoomKey, {
-    ...roomData,
-    users: JSON.stringify(roomData.users), // 유저 정보를 JSON 문자열로 변환하여 저장
-  });
-
   //방 인원이 최대인 경우
-  if (roomData.state === 1) {
+  if (roomData.state === 1 && roomData.users.length >= roomData.maxUserNum) {
     console.error('최대 인원입니다.');
     const joinRandomRoomPayload = {
       joinRandomRoomResponse: {
@@ -217,7 +200,30 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       },
     };
     socket.write(createResponse(joinRandomRoomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+    return;
   }
+  //방 상태 변경 알림
+  const joinRoomNotificationPayload = {
+    joinRoomNotification: {
+      joinUser: newUserInfo,
+    },
+  };
+
+  roomData.users.forEach((element) => {
+    const user = getUserByUserId(element.id);
+    user.socket.write(
+      createResponse(joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0),
+    );
+  });
+
+  // 유저를 방의 유저 목록에 추가
+  roomData.users.push(newUserInfo);
+
+  // 방 정보 업데이트
+  await redis.addRoomRedis(randomRoomKey, {
+    ...roomData,
+    users: JSON.stringify(roomData.users), // 유저 정보를 JSON 문자열로 변환하여 저장
+  });
   //랜덤매칭에 성공한 경우
   const joinRandomRoomPayload = {
     joinRandomRoomResponse: {
