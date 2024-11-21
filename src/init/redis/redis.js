@@ -38,98 +38,52 @@ export const redis = {
     return await redisClient.get(key);
   },
 
-  // 여러 데이터 저장
-  saddRedis: async (key, ...val) => {
-    return await redisClient.sadd(key, ...val);
+  // 방 생성 시 저장
+  addRoomRedis: async (key, val) => {
+    return await redisClient.hset(key, ...Object.entries(val).flat());
   },
 
-  //순위 저장
+  // 방에 방장 찾기
+  getRoomByUserId: async (key, val) => {
+    // 방 정보가 해시로 저장되어 있는지 확인
+    const roomValue = await redisClient.hget(key, val);
 
-  recordRedis: async (win, lose) => {
-    //승리 스택 저장(push)
-    await redisClient.rpush('win', ...win);
-    //패배 스택 저장(shift)
-    await redisClient.lpush('lose', ...lose);
-  },
-
-  //게임 종료 후 결과 저장
-  gameResultRedis: async () => {
-    const winner = await redisClient.lrange('win', 0, -1);
-    const losers = await redisClient.lrange('lose', 0, -1);
-    //최종 결과 합치기
-    //패배는 역순으로 저장
-    const resultConcatRedis = [...winner, ...losers.reverse()];
-    //최종 결과를 DB에 저장
-    await createRecord('userId', resultConcatRedis);
-
-    //redis 스택 초기화
-    await redisClient.del('winners');
-    await redisClient.del('losers');
-  },
-
-  //유저 정보를 해시로 저장하기
-  hSetRedis: async (key, val) => {
-    await redisClient.hset(key, val);
-    return user;
-  },
-
-  /**
-   * @desc 유저를 룸 세션에서 관리하는부분
-   * @todo
-   * 1.유저의 세션을 배열로 만든다
-   * 2.룸 세션도 배열로 만든다.
-   * 3.룸의 키값은 uuid로 한다.
-   * 4.룸세션은 유저 세션에 들어온 유저만 들어올 수 있다.
-   * 5.maxUserNum <= 룸 세션 길이 라면 게임 준비 or 시작가능
-   *
-   */
-  // 1
-  //유저를 룸에 넣어줌
-
-  addUserToRoom: async (roomId, userId) => {
-    try {
-      const key = roomId;
-      await redisClient.sadd(key, userId);
-      await redisClient.expire(key, 3600);
-    } catch (err) {
-      console.error('Redis error: ', err);
+    if (roomValue === null) {
+      console.error(`해당 키에 대한 방 정보가 없습니다: ${key}`);
+      return null;
     }
-  },
-  //룸 ID를 담은 rooms배열
-  addRoomToRooms: async (rooms, roomId) => {
-    try {
-      const key = rooms;
-      await redisClient.sadd(key, roomId);
-      await redisClient.expire(key, 3600);
-    } catch (err) {
-      console.error('Redis error: ', err);
-    }
-  },
-  //유저가 나간다면 룸에서 삭제
-  removeUser: async (roomId, userId) => {
-    try {
-      await redisClient.srem(roomId, userId);
-    } catch (err) {
-      console.error('Redis error: ', err);
-    }
-  },
-  //게임 종료시 룸 삭제
-  deleteSession: async (roomId) => {
-    try {
-      await redisClient.del(roomId);
-    } catch (err) {
-      console.error('Redis error: ', err);
-    }
+
+    return roomValue;
   },
 
-  //레디스 sadd배열 키값으로 조회하기
-  getRedisSadd: async (key) => {
-    try {
-      const members = await redisClient.smembers(key);
-      return members;
-    } catch (err) {
-      console.error('Redis error: ', err);
+  // 방에 해당하는 모든 키 가져오기
+  getRoomKeys: async (pattern) => {
+    const keys = [];
+    let cursor = '0'; // SCAN의 커서 초기값
+
+    do {
+      // SCAN을 사용하여 키를 가져옴
+      //cursor = 다음 스캔 시작 위치 , 처음호출시 0
+      //MATCH pattern = 특정 패턴에 따른 키 필터링 , 예시:room:*
+      //COUNT 100 = 한번의 스캔에서 반환할 키의 대략적인 수 지정
+      const result = await redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      cursor = result[0]; // 다음 커서 업데이트
+      keys.push(...result[1]); // 가져온 키를 배열에 추가
+    } while (cursor !== '0'); // 커서가 0이 아닐 때까지 반복
+
+    return keys; // 모든 키 반환
+  },
+
+  // 해당키값의 모든 필드 가져오기
+  getAllFieldsFromHash: async (key) => {
+    const hashData = await redisClient.hgetall(key); // 모든 필드와 값을 가져옴
+
+    if (!hashData) {
+      console.error(`해시가 존재하지 않습니다: ${key}`);
+      return null; // 해시가 존재하지 않을 때 null 반환
     }
+
+    return hashData; // 해시의 모든 필드와 값을 반환
   },
 
   // 키값으로 레디스 데이터 삭제하기
