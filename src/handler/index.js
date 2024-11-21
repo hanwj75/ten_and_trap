@@ -2,6 +2,7 @@ import { packetType } from '../constants/header.js';
 import { gamePrepareHandler } from './game/gamePrepare.handler.js';
 import { loginHandler } from './user/loginHandler.js';
 import { registerHandler } from './user/registerHandler.js';
+
 import {
   createRoomHandler,
   getRoomListHandler,
