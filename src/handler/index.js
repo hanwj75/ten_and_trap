@@ -1,8 +1,12 @@
 import { packetType } from '../constants/header.js';
+import { gamePrepareHandler } from './game/gamePrepare.handler.js';
 import { loginHandler } from './user/loginHandler.js';
 import { registerHandler } from './user/registerHandler.js';
-
-import { createRoomHandler, getRoomListHandler,joinRandomRoomHandler } from './room/roomHandler.js';
+import {
+  createRoomHandler,
+  getRoomListHandler,
+  joinRandomRoomHandler,
+} from './room/roomHandler.js';
 
 const testFunction = () => {
   console.log(`이거 지우고 넣으시면 됩니다.`);
@@ -42,7 +46,7 @@ const handlers = {
 
   //게임 준비 및 게임 시작
   [packetType.GAME_PREPARE_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: gamePrepareHandler /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
   [packetType.GAME_PREPARE_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
