@@ -35,7 +35,7 @@ import { addRoom, getAllRoom } from '../../sessions/room.session.js';
 
 export const createRoomHandler = async (socket, payload) => {
   const { name, maxUserNum } = payload.createRoomRequest;
-  const roomId = uuidv4();
+  const roomId = 1;
 
   const users = await getUserBySocket(socket);
 
@@ -49,6 +49,7 @@ export const createRoomHandler = async (socket, payload) => {
     nickname: users.nickName,
     character: users.character,
   };
+
   const roomByUserId = await redis.getRoomByUserId(`room:${userInfo.id}`, `ownerId`);
   if (roomByUserId) {
     console.error(`이미 방을 소유하고있음`);
@@ -105,13 +106,20 @@ room:users: JSON 문자열로 변환한 유저 정보 배열
 }
 
  */
-export const getRoomListHandler = (socket) => {
+export const getRoomListHandler = async (socket) => {
   try {
-    const curRoom = getAllRoom();
-
+    const roomKeys = await redis.getRoomKeys('room:*'); // 모든 방 키를 가져옴
+    console.log(roomKeys);
+    const allRooms = [];
+    for (const value of roomKeys) {
+      const roomData = await redis.getAllFieldsFromHash(value);
+      roomData.users = JSON.parse(roomData.users);
+      allRooms.push(roomData);
+    }
+    console.log('testhash:' + allRooms);
     const getRoomListPayload = {
       getRoomListResponse: {
-        rooms: curRoom,
+        rooms: allRooms,
       },
     };
     socket.write(createResponse(getRoomListPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
@@ -167,8 +175,50 @@ export const joinRandomRoomHandler = async (socket, payload) => {
   const randomRoomKey = roomKeys[randomIndex];
 
   const roomData = await redis.getAllFieldsFromHash(randomRoomKey);
+  console.log(`🤪 ~ file: roomHandler.js:178 ~ joinRandomRoomHandler ~ roomData:`, roomData);
 
-  //4. 랜덤매칭에 성공한 경우
+  //게임이 시작한 경우
+
+  if (roomData.state === 2) {
+    console.error('게임이 시작한 방입니다.');
+    const joinRandomRoomPayload = {
+      joinRandomRoomResponse: {
+        success: false,
+        room: null,
+        failCode: GlobalFailCode.values.JOIN_ROOM_FAILED,
+      },
+    };
+    socket.write(createResponse(joinRandomRoomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+  }
+  roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
+  const newUserInfo = {
+    id: user.userId,
+    nickname: user.nickName,
+    character: user.character,
+  };
+
+  // 유저를 방의 유저 목록에 추가
+  roomData.users.push(newUserInfo);
+
+  // 방 정보 업데이트
+  await redis.addRoomRedis(randomRoomKey, {
+    ...roomData,
+    users: JSON.stringify(roomData.users), // 유저 정보를 JSON 문자열로 변환하여 저장
+  });
+
+  //방 인원이 최대인 경우
+  if (roomData.state === 1) {
+    console.error('최대 인원입니다.');
+    const joinRandomRoomPayload = {
+      joinRandomRoomResponse: {
+        success: false,
+        room: null,
+        failCode: GlobalFailCode.values.JOIN_ROOM_FAILED,
+      },
+    };
+    socket.write(createResponse(joinRandomRoomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+  }
+  //랜덤매칭에 성공한 경우
   const joinRandomRoomPayload = {
     joinRandomRoomResponse: {
       success: true,
