@@ -95,21 +95,21 @@ export const loginHandler = async (socket, payload) => {
     // Redis용
     const userInfoToRedis = {
       id: checkExistId.id,
-      nickname: checkExistId.nickName,
-      joinroom: null,
-      charactertype: loginCharacter.characterType,
-      roletype: loginCharacter.roleType,
+      nickName: checkExistId.nickName,
+      joinRoom: null,
+      characterType: loginCharacter.characterType,
+      roleType: loginCharacter.roleType,
       hp: loginCharacter.hp,
       weapon: loginCharacter.weapon,
-      stateinfo: loginCharacter.stateInfo,
+      stateInfo: loginCharacter.stateInfo,
       equips: loginCharacter.equips,
       debuffs: loginCharacter.debuffs,
-      handcards: loginCharacter.handCards,
-      bbangcount: loginCharacter.bbangCount,
-      handcardscount: loginCharacter.handCardsCount,
+      handCards: loginCharacter.handCards,
+      bbangCount: loginCharacter.bbangCount,
+      handCardsCount: loginCharacter.handCardsCount,
     };
 
-    await redis.addRedisToHash(`user:${checkExistId.userId}`, userInfoToRedis);
+    await redis.addRedisToHash(`user:${checkExistId.id}`, userInfoToRedis);
     return makeResponse(
       socket,
       true,
