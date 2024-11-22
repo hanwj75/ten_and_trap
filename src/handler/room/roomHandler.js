@@ -1,5 +1,5 @@
 import Room from '../../classes/models/room.class.js';
-import { getUserBySocket, getUserByUserId } from '../../sessions/user.session.js';
+import { getUserBySocket, getUserById } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
@@ -167,7 +167,7 @@ export const joinRoomHandler = async (socket, payload) => {
 
   roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
   roomData.users.forEach((element) => {
-    const user = getUserByUserId(element.id);
+    const user = getUserById(Number(element.id));
     user.socket.write(
       createResponse(joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0),
     );
@@ -238,7 +238,6 @@ export const joinRandomRoomHandler = async (socket, payload) => {
   const roomData = await redis.getAllFieldsFromHash(randomRoomKey);
 
   //게임이 시작한 경우
-
   if (roomData.state === 2) {
     console.error('게임이 시작한 방입니다.');
     const joinRandomRoomPayload = {
@@ -279,7 +278,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
   };
 
   roomData.users.forEach((element) => {
-    const user = getUserByUserId(Number(element.id));
+    const user = getUserById(Number(element.id));
     user.socket.write(
       createResponse(joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0),
     );
