@@ -9,10 +9,7 @@ import { redis } from '../../init/redis/redis.js';
  * @dest 방 만들기
  * @author 한우종
  * @todo 방 생성하기 요청 들어올시 방 생성해주기
- * !!!!!!!!!!!!!!
- * roomId 가변으로 바꿔줘야함
-}
-*/
+ */
 let roomId = 1;
 
 export const createRoomHandler = async (socket, payload) => {
@@ -91,10 +88,6 @@ room:users: JSON 문자열로 변환한 유저 정보 배열
  * @dest 방 리스트 조회
  * @author 박건순
  * @todo 현재 존재하는 방 목록 보여주기
- * message S2CGetRoomListResponse{
-    repeated RoomData rooms = 1;
-}
-
  */
 export const getRoomListHandler = async (socket) => {
   try {
@@ -123,11 +116,6 @@ export const getRoomListHandler = async (socket) => {
  * @dest 방 들어가기
  * @author 박건순
  * @todo 방 리스트에 있는 방 선택해서 들어가기
- * message S2CJoinRoomResponse {
-    bool success = 1;
-    RoomData room = 2;
-    GlobalFailCode failCode = 3;
-}
  */
 export const joinRoomHandler = async (socket, payload) => {
   const { roomId } = payload.joinRoomRequest;
@@ -213,13 +201,7 @@ export const joinRoomHandler = async (socket, payload) => {
  * @dest 랜덤매칭
  * @author 한우종
  * @todo 존재하는 방 중에서 랜덤하게 들어가기
- *
- * 1. roomList가져오기 ㅇ
- * 2. roomList에서 랜덤한 값에 따라 해당 방에 참여 ㅇ
- * 3. 게임이 시작한 경우 에러처리
- * 4. 방이 가득찬 경우 === state = 1인 경우
  */
-
 export const joinRandomRoomHandler = async (socket, payload) => {
   //방이 너무 많을경우 그걸 다 불러올수없음
   //유효한 사용자가 아닌경우 ,게임이 시작한 경우 제외 , 가득찬 경우 제외 ,
