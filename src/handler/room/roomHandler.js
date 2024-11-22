@@ -13,25 +13,25 @@ import { redis } from '../../init/redis/redis.js';
  * roomId 가변으로 바꿔줘야함
 }
 */
+let roomId = 1;
 
 export const createRoomHandler = async (socket, payload) => {
   const { name, maxUserNum } = payload.createRoomRequest;
 
   const users = await getUserBySocket(socket);
-  const roomId = 1;
-
+  const ids = await redis.getRoomByUserId(users.userId, `id`);
   if (!users) {
     console.error(`존재하지 않는 유저입니다.`);
     return;
   }
 
   const userInfo = {
-    id: users.userId,
+    id: ids,
     nickname: users.nickName,
     character: users.character,
   };
 
-  const roomByUserId = await redis.getRoomByUserId(`room:${userInfo.id}`, `ownerId`);
+  const roomByUserId = await redis.getRoomByUserId(`room:${ids}`, `ownerId`);
   if (roomByUserId) {
     console.error(`이미 방을 소유하고있음`);
     const createRoomPayload = {
@@ -47,8 +47,8 @@ export const createRoomHandler = async (socket, payload) => {
   }
 
   //방 이름과 최대인원수를 담아 요청이오면 나는 success:true , roomData:id, ownerId, name, maxUserNum, state, users , failCode만 보내주면 방은 생길듯
-  const newRoom = new Room(roomId, userInfo.id, name, maxUserNum, 0, [userInfo]);
-
+  const newRoom = new Room(roomId, ids, name, maxUserNum, 0, [userInfo]);
+  roomId++;
   /**
    * newRoom에서 저장해야할 값
    * 
@@ -140,6 +140,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
 
   //1.유효한 사용자가 아닌경우
   const user = await getUserBySocket(socket);
+  const ids = await redis.getRoomByUserId(user.userId, `id`);
   if (!user) {
     console.error(`유효하지 않은 사용자`);
     return;
@@ -184,7 +185,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
   }
   roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
   const newUserInfo = {
-    id: user.userId,
+    id: ids,
     nickname: user.nickName,
     character: user.character,
   };
@@ -210,7 +211,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
   };
 
   roomData.users.forEach((element) => {
-    const user = getUserByUserId(element.id);
+    const user = getUserByUserId(Number(element.id));
     user.socket.write(
       createResponse(joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0),
     );
