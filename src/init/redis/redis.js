@@ -94,6 +94,11 @@ export const redis = {
       console.error(err);
     }
   },
+
+  // 게임 준비 단계 업데이트
+  updateRoomState: async (key, state) => {
+    return await redisClient.hset(key, 'state', state);
+  },
 };
 
 // 순위 1~7등
