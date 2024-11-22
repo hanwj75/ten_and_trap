@@ -7,6 +7,7 @@ import {
   getRoomListHandler,
   joinRandomRoomHandler,
   joinRoomHandler,
+  leaveRoomHandler,
 } from './room/roomHandler.js';
 
 const testFunction = () => {
@@ -35,14 +36,8 @@ const handlers = {
   [packetType.JOIN_RANDOM_ROOM_REQUEST]: {
     handler: joinRandomRoomHandler,
   },
-  [packetType.JOIN_ROOM_NOTIFICATION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
-  },
   [packetType.LEAVE_ROOM_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
-  },
-  [packetType.LEAVE_ROOM_NOTIFICATION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: leaveRoomHandler /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
 
   //게임 준비 및 게임 시작
