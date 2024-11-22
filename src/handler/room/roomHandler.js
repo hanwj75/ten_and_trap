@@ -127,9 +127,9 @@ export const joinRoomHandler = async (socket, payload) => {
   const roomData = await redis.getAllFieldsFromHash(roomKey);
   const user = await getUserBySocket(socket);
 
-  //방 인원이 최대인 경우
-  if (roomData.state === 1) {
-    console.error('최대 인원입니다.');
+  //게임이 시작한 경우
+  if (roomData.state === 2) {
+    console.error('게임이 시작한 방입니다.');
     const joinRoomPayload = {
       joinRoomResponse: {
         success: false,
@@ -140,9 +140,9 @@ export const joinRoomHandler = async (socket, payload) => {
     socket.write(createResponse(joinRoomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
   }
 
-  //게임이 시작한 경우
-  if (roomData.state === 2) {
-    console.error('게임이 시작한 방입니다.');
+  //방 인원이 최대인 경우
+  if (roomData.state === 1) {
+    console.error('최대 인원입니다.');
     const joinRoomPayload = {
       joinRoomResponse: {
         success: false,
