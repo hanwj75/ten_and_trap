@@ -38,8 +38,8 @@ export const redis = {
     return await redisClient.get(key);
   },
 
-  // 방 생성 시 저장
-  addRoomRedis: async (key, val) => {
+  // 데이터 해시로 저장
+  addRedisToHash: async (key, val) => {
     return await redisClient.hset(key, ...Object.entries(val).flat());
   },
 
@@ -75,10 +75,10 @@ export const redis = {
   },
 
   // 필드 값으로 키 찾기
-  findRoomKeyToField: async (keys, field) => {
+  findRoomKeyToField: async (keys, field, fieldvalue) => {
     for (const key of keys) {
-      const value = await redisClient.hget(key, 'id');
-      if (value == field) {
+      const value = await redisClient.hget(key, field);
+      if (value == fieldvalue) {
         return key;
       }
     }

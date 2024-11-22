@@ -61,7 +61,7 @@ room:users: JSON 문자열로 변환한 유저 정보 배열
    */
 
   //redis에 방 정보 저장
-  await redis.addRoomRedis(`room:${newRoom.ownerId}`, {
+  await redis.addRedisToHash(`room:${newRoom.ownerId}`, {
     id: newRoom.id,
     ownerId: newRoom.ownerId,
     name: newRoom.name,
@@ -93,12 +93,13 @@ export const getRoomListHandler = async (socket) => {
   try {
     const roomKeys = await redis.getRoomKeys('room:*'); // 모든 방 키를 가져옴
     const allRooms = [];
-    for (const value of roomKeys) {
-      const roomData = await redis.getAllFieldsFromHash(value);
-      roomData.users = JSON.parse(roomData.users);
-      allRooms.push(roomData);
+    if (roomKeys.length > 0) {
+      for (const value of roomKeys) {
+        const roomData = await redis.getAllFieldsFromHash(value);
+        roomData.users = JSON.parse(roomData.users);
+        allRooms.push(roomData);
+      }
     }
-    console.log('testhash:' + allRooms);
     const getRoomListPayload = {
       getRoomListResponse: {
         rooms: allRooms,
@@ -123,7 +124,7 @@ export const getRoomListHandler = async (socket) => {
 export const joinRoomHandler = async (socket, payload) => {
   const { roomId } = payload.joinRoomRequest;
   const roomKeys = await redis.getRoomKeys('room:*');
-  const roomKey = await redis.findRoomKeyToField(roomKeys, roomId);
+  const roomKey = await redis.findRoomKeyToField(roomKeys, 'id', roomId);
   const roomData = await redis.getAllFieldsFromHash(roomKey);
   const user = await getUserBySocket(socket);
 
@@ -154,7 +155,7 @@ export const joinRoomHandler = async (socket, payload) => {
   }
 
   const newUserInfo = {
-    id: user.userId,
+    id: user.Id,
     nickname: user.nickName,
     character: user.character,
   };
@@ -176,7 +177,7 @@ export const joinRoomHandler = async (socket, payload) => {
   roomData.users.push(newUserInfo);
 
   // 방 정보 업데이트
-  await redis.addRoomRedis(roomKey, {
+  await redis.addRedisToHash(roomKey, {
     ...roomData,
     users: JSON.stringify(roomData.users), // 유저 정보를 JSON 문자열로 변환하여 저장
   });
@@ -288,7 +289,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
   roomData.users.push(newUserInfo);
 
   // 방 정보 업데이트
-  await redis.addRoomRedis(randomRoomKey, {
+  await redis.addRedisToHash(randomRoomKey, {
     ...roomData,
     users: JSON.stringify(roomData.users), // 유저 정보를 JSON 문자열로 변환하여 저장
   });
