@@ -85,18 +85,37 @@ export const loginHandler = async (socket, payload) => {
     );
 
     const totalToken = `Bearer ${accessToken}`;
-    const userInfo = {
+    // Response용
+    const userInfoToResponse = {
       id: checkExistId.id,
       nickname: checkExistId.nickName,
-      character: JSON.stringify({ characterType: 1 }),
+      character: loginCharacter, //JSON.stringify({ characterType: 1 }),
     };
-    await redis.addRoomRedis(email, userInfo);
+
+    // Redis용
+    const userInfoToRedis = {
+      id: checkExistId.id,
+      nickName: checkExistId.nickName,
+      joinRoom: null,
+      characterType: loginCharacter.characterType,
+      roleType: loginCharacter.roleType,
+      hp: loginCharacter.hp,
+      weapon: loginCharacter.weapon,
+      stateInfo: loginCharacter.stateInfo,
+      equips: loginCharacter.equips,
+      debuffs: loginCharacter.debuffs,
+      handCards: loginCharacter.handCards,
+      bbangCount: loginCharacter.bbangCount,
+      handCardsCount: loginCharacter.handCardsCount,
+    };
+
+    await redis.addRedisToHash(`user:${checkExistId.id}`, userInfoToRedis);
     return makeResponse(
       socket,
       true,
       'Login Success',
       totalToken,
-      userInfo,
+      userInfoToResponse,
       GlobalFailCode.values.NONE_FAILCODE,
     );
   } catch (err) {
