@@ -23,6 +23,7 @@ export const loginHandler = async (socket, payload) => {
 
     // 아이디 존재 검증
     const checkExistId = await findUserById(email);
+
     if (!checkExistId) {
       return makeResponse(
         socket,
@@ -64,7 +65,13 @@ export const loginHandler = async (socket, payload) => {
     // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
     const loginCharacter = new Character(0, 0, 5, 0, {}, 0, 0, {}, 0, 0);
     // 유저 클래스 생성
-    const loginUser = new User(socket, email, checkExistId.nickName, loginCharacter);
+    const loginUser = new User(
+      checkExistId.id,
+      socket,
+      email,
+      checkExistId.nickName,
+      loginCharacter,
+    );
     await addUser(loginUser);
     await updateUserLogin(email);
 
@@ -79,11 +86,11 @@ export const loginHandler = async (socket, payload) => {
 
     const totalToken = `Bearer ${accessToken}`;
     const userInfo = {
-      id: email,
+      id: checkExistId.id,
       nickname: checkExistId.nickName,
-      character: { characterType: 1 },
+      character: JSON.stringify({ characterType: 1 }),
     };
-    redis.setRedis(email, JSON.stringify(userInfo));
+    await redis.addRoomRedis(email, userInfo);
     return makeResponse(
       socket,
       true,
