@@ -1,6 +1,7 @@
 import { getUserById } from '../../sessions/user.session.js';
 import { createResponse } from '../response/createResponse.js';
 
+//다중 유저 response or notification에 사용
 export const sendNotificationToUsers = (users, payload, notificationType, sequence) => {
   users.forEach((element) => {
     const otherUser = getUserById(Number(element.id));
