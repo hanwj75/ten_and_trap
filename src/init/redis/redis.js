@@ -43,6 +43,9 @@ export const redis = {
     return await redisClient.hset(key, ...Object.entries(val).flat());
   },
 
+  setRoomByUserId: async (key, field, val) => {
+    return await redisClient.hset(key, field, val);
+  },
   // 방에 방장 찾기
   getRoomByUserId: async (key, val) => {
     // 방 정보가 해시로 저장되어 있는지 확인
