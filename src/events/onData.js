@@ -40,7 +40,7 @@ export const onData = (socket) => async (data) => {
       try {
         //모든 패킷 처리
         const decodedPacket = GamePacket.decode(payload);
-        console.log('decode:' + decodedPacket);
+        console.log(`decode:  ${JSON.stringify(decodedPacket)}`);
         const handler = getProtoPacketType(payloadOneofCase);
         if (handler) {
           await handler(socket, decodedPacket);
