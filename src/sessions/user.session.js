@@ -5,8 +5,8 @@ export const addUser = async (user) => {
   return user;
 };
 
-export const getUserByUserId = (userId) => {
-  return userSessions.find((user) => user.id === userId);
+export const getUserById = (Id) => {
+  return userSessions.find((user) => user.id === Id);
 };
 
 export const removeUser = async (socket) => {
