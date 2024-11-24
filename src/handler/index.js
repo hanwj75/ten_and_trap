@@ -1,5 +1,6 @@
 import { packetType } from '../constants/header.js';
 import { gamePrepareHandler } from './game/gamePrepare.handler.js';
+import { gameStartHandler } from './game/gameStart.handler.js';
 import { loginHandler } from './user/loginHandler.js';
 import { registerHandler } from './user/registerHandler.js';
 
@@ -54,7 +55,7 @@ const handlers = {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
   [packetType.GAME_START_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: gameStartHandler /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
   [packetType.GAME_START_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,

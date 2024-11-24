@@ -107,7 +107,7 @@ export const redis = {
 
   // 게임 준비 단계 업데이트
   updateRoomState: async (key, state) => {
-    return await redisClient.hset(key, 'state', state);
+    await redisClient.hset(key, 'state', state);
   },
 };
 

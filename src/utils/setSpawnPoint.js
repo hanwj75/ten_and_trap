@@ -25,7 +25,7 @@ export const setSpawnPoint = (userNum) => {
   const characterPositions = [];
 
   for (let i = 0; i < userNum; i++) {
-    const random = Math.floot(Math.random() * spawnPoints.length);
+    const random = Math.floor(Math.random() * spawnPoints.length);
     characterPositions.push(spawnPoints.splice(random, 1)[0]);
   }
 

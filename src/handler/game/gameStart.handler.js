@@ -2,6 +2,7 @@ import { packetType } from '../../constants/header.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { createResponse } from '../../utils/response/createResponse.js';
+import { setSpawnPoint } from '../../utils/setSpawnPoint.js';
 
 export const gameStartHandler = async (socket) => {
   try {
@@ -24,6 +25,10 @@ export const gameStartHandler = async (socket) => {
       return;
     }
 
+    // 최소 인원수 점검
+    // if (users.length < 4) {
+    // }
+
     // response
     const responsePayload = {
       gameStartResponse: {
@@ -31,8 +36,15 @@ export const gameStartHandler = async (socket) => {
         failCode: GlobalFailCode.values.NONE_FAILCODE,
       },
     };
+
+    const users = JSON.parse(updatedRoom.users);
+
     const response = createResponse(responsePayload, packetType.GAME_START_RESPONSE, 0);
     socket.write(response);
+
+    console.log(users);
+
+    const randomPositionData = setSpawnPoint(users);
   } catch (error) {
     console.error(error);
   }
