@@ -90,7 +90,7 @@ room:users: JSON 문자열로 변환한 유저 정보 배열
  * @author 박건순
  * @todo 현재 존재하는 방 목록 보여주기
  */
-export const getRoomListHandler = async (socket) => {
+export const getRoomListHandler = async (socket, payload) => {
   try {
     const roomKeys = await redis.getRoomKeys('room:*'); // 모든 방 키를 가져옴
     const allRooms = [];
@@ -205,9 +205,6 @@ export const joinRoomHandler = async (socket, payload) => {
  * @todo 존재하는 방 중에서 랜덤하게 들어가기
  */
 export const joinRandomRoomHandler = async (socket, payload) => {
-  //방이 너무 많을경우 그걸 다 불러올수없음
-  //유효한 사용자가 아닌경우 ,게임이 시작한 경우 제외 , 가득찬 경우 제외 ,
-
   //1.유효한 사용자가 아닌경우
   const user = await getUserBySocket(socket);
   if (!user) {
@@ -316,28 +313,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
  * @dest 방 나가기
  * @author 한우종
  * @todo 참여한 방에서 나가기
- * message S2CLeaveRoomResponse {
-    bool success = 1;
-    GlobalFailCode failCode = 2;
-}
-    message S2CLeaveRoomNotification {
-    int64 userId = 1;
-}
-
-leaveRoomResponse
-
-leaveRoomNotification
-
-1.유저의 방 나가기 요청이들어옴 11
-2.요청을 한 유저의 id를 확인하고 roomData에서 해당유저 삭제후 true 11 
-3.나머지 유저에게 notification 보내주기 11
-4.마지막 유저가 나갈시 방삭제 xx =>방장이 나가면 어차피 터짐 필요없음
-5.방이 존재하지 않을시 에러처리 11
-6.해당 방에 유저가 없을시 에러처리 11
-7.방장이 나가면 방이터짐
-
  */
-
 export const leaveRoomHandler = async (socket, payload) => {
   const user = await getUserBySocket(socket);
   const currentUserId = user.id;
