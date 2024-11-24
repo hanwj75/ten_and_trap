@@ -101,10 +101,10 @@ export const loginHandler = async (socket, payload) => {
       roleType: loginCharacter.roleType,
       hp: loginCharacter.hp,
       weapon: loginCharacter.weapon,
-      stateInfo: loginCharacter.stateInfo,
+      stateInfo: JSON.stringify(loginCharacter.stateInfo),
       equips: loginCharacter.equips,
       debuffs: loginCharacter.debuffs,
-      handCards: loginCharacter.handCards,
+      handCards: JSON.stringify(loginCharacter.handCards),
       bbangCount: loginCharacter.bbangCount,
       handCardsCount: loginCharacter.handCardsCount,
     };
