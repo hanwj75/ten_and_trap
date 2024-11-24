@@ -8,11 +8,8 @@ export const onEnd = (socket) => async () => {
   console.log('클라이언트 연결이 종료되었습니다.');
 
   /**
-   * @todo
-   * 1. 유저의 joinRoom을 찾아옴
-   * 2. joinRoom과 일치하는 키값을 가진 room을 찾아옴
-   * 3. 일반유저일경우 해당 유저데이터만 삭제 => 제외 notification 보내줌
-   * 4. 방장일 경우 room키값 삭제 => leaveRoomResponse로 다 쫒아냄
+   * @desc 클라이언트 종료시 방 나가기 OR 데이터 삭제
+   * @author 한우종
    */
   const user = await getUserBySocket(socket);
   if (user) {
