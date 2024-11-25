@@ -21,13 +21,14 @@ const spawnPoints = [
   { id: 20, x: -15.202, y: -4.736 },
 ];
 
-export const setSpawnPoint = (userNum) => {
-  const characterPositions = [];
+export const setSpawnPoints = (userNum) => {
+  const shuffled = [...spawnPoints];
 
-  for (let i = 0; i < userNum; i++) {
-    const random = Math.floor(Math.random() * spawnPoints.length);
-    characterPositions.push(spawnPoints.splice(random, 1)[0]);
+  for (let i = shuffled.length - 1; i >= 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
   }
 
-  return characterPositions;
+  // n개만 선택하여 반환
+  return shuffled.slice(0, userNum);
 };

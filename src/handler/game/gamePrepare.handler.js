@@ -1,7 +1,7 @@
 import { packetType } from '../../constants/header.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
-import { getUserById, getUserBySocket, getUserByUserId } from '../../sessions/user.session.js';
+import { getUserById, getUserBySocket } from '../../sessions/user.session.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 
 export const gamePrepareHandler = async (socket) => {
@@ -63,6 +63,8 @@ export const gamePrepareHandler = async (socket) => {
       const targetUser = getUserById(+user.id);
       targetUser.socket.write(createResponse(notification));
     });
+
+    console.log(users);
   } catch (error) {
     console.error(error);
   }
