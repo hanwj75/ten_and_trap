@@ -7,7 +7,7 @@ import { redis } from '../../init/redis/redis.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 
 /**
- * @dest 방 만들기
+ * @desc 방 만들기
  * @author 한우종
  * @todo 방 생성하기 요청 들어올시 방 생성해주기
  */
@@ -45,16 +45,6 @@ export const createRoomHandler = async (socket, payload) => {
 
   const newRoom = new Room(roomId, user.id, name, maxUserNum, 0, [userInfo]);
   roomId++;
-  /**
-   * newRoom에서 저장해야할 값
-   * 
-room:id: 방 ID
-room:ownerId: 방 소유자 ID
-room:name: 방 이름
-room:maxUserNum: 최대 유저 수
-room:state: 방 상태 (0, 1, 2)
-room:users: JSON 문자열로 변환한 유저 정보 배열
-   */
 
   //redis에 방 정보 저장
   await redis.addRedisToHash(`room:${newRoom.id}`, {
@@ -86,7 +76,7 @@ room:users: JSON 문자열로 변환한 유저 정보 배열
 };
 
 /**
- * @dest 방 리스트 조회
+ * @desc 방 리스트 조회
  * @author 박건순
  * @todo 현재 존재하는 방 목록 보여주기
  */
@@ -114,7 +104,7 @@ export const getRoomListHandler = async (socket) => {
 };
 
 /**
- * @dest 방 들어가기
+ * @desc 방 들어가기
  * @author 박건순
  * @todo 방 리스트에 있는 방 선택해서 들어가기
  */
@@ -200,7 +190,7 @@ export const joinRoomHandler = async (socket, payload) => {
 };
 
 /**
- * @dest 랜덤매칭
+ * @desc 랜덤매칭
  * @author 한우종
  * @todo 존재하는 방 중에서 랜덤하게 들어가기
  */
@@ -313,29 +303,9 @@ export const joinRandomRoomHandler = async (socket, payload) => {
 };
 
 /**
- * @dest 방 나가기
+ * @desc 방 나가기
  * @author 한우종
  * @todo 참여한 방에서 나가기
- * message S2CLeaveRoomResponse {
-    bool success = 1;
-    GlobalFailCode failCode = 2;
-}
-    message S2CLeaveRoomNotification {
-    int64 userId = 1;
-}
-
-leaveRoomResponse
-
-leaveRoomNotification
-
-1.유저의 방 나가기 요청이들어옴 11
-2.요청을 한 유저의 id를 확인하고 roomData에서 해당유저 삭제후 true 11 
-3.나머지 유저에게 notification 보내주기 11
-4.마지막 유저가 나갈시 방삭제 xx =>방장이 나가면 어차피 터짐 필요없음
-5.방이 존재하지 않을시 에러처리 11
-6.해당 방에 유저가 없을시 에러처리 11
-7.방장이 나가면 방이터짐
-
  */
 
 export const leaveRoomHandler = async (socket, payload) => {
