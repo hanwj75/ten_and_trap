@@ -43,6 +43,9 @@ export const redis = {
     return await redisClient.hset(key, ...Object.entries(val).flat());
   },
 
+  setRoomByUserId: async (key, field, val) => {
+    return await redisClient.hset(key, field, val);
+  },
   // 방에 방장 찾기
   getRoomByUserId: async (key, val) => {
     // 방 정보가 해시로 저장되어 있는지 확인
@@ -54,6 +57,13 @@ export const redis = {
     }
 
     return roomValue;
+  },
+
+  // 방의 사용자 목록을 Redis에 저장하는 함수
+  updateUsersToRoom: async (key, fiedl, val) => {
+    // Redis에 사용자 목록 저장
+    await redisClient.hset(`room:${key}`, fiedl, JSON.stringify(val));
+    console.log(`사용자 목록이 방 ${key}에 저장되었습니다.`);
   },
 
   // 방에 해당하는 모든 키 가져오기
