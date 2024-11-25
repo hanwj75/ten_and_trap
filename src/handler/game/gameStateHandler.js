@@ -120,7 +120,7 @@ export const gameStartHandler = async (socket, payload) => {
     const randomPosition = RANDOM_POSITIONS[randomKey];
     const characterPosition = new CharacterPosition(user.id, randomPosition);
 
-    //각 사용자 포지션 넣어주는부분
+    // 각 사용자 포지션을 넣어주는 부분
     positionData.push(characterPosition);
   }
 
@@ -128,7 +128,7 @@ export const gameStartHandler = async (socket, payload) => {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
   }
 
-  const newState = new GameState(PhaseType.values.END, Date.now() + 60000);
+  const newState = new GameState(PhaseType.values.DAY, Date.now() + 60000);
 
   const gameStartNotificationPayload = {
     gameStartNotification: {
