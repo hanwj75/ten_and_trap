@@ -1,7 +1,7 @@
 import { packetType } from '../constants/header.js';
 import { loginHandler } from './user/loginHandler.js';
 import { registerHandler } from './user/registerHandler.js';
-
+import { useCardHandler } from './card/useCardHandler.js';
 import {
   createRoomHandler,
   getRoomListHandler,
@@ -69,7 +69,7 @@ const handlers = {
 
   //카드 사용
   [packetType.USE_CARD_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: useCardHandler,
   },
   [packetType.USE_CARD_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,

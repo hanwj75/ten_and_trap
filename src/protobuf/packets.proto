@@ -154,7 +154,7 @@ message S2CPositionUpdateNotification {
 }
 
 message C2SUseCardRequest {
-    int32 cardId = 1;
+    CardType cardType = 1;
     int64 targetUserId = 2; // 타겟 없으면 0
 }
 
@@ -164,7 +164,7 @@ message S2CUseCardResponse { // 성공 여부만 반환하고 대상 유저 효�
 }
 
 message S2CUseCardNotification {
-    int32 cardId = 1;
+    CardType cardType = 1;
     int64 userId = 2;
     int64 targetUserId = 3; // 타겟 없으면 0
 }
