@@ -4,7 +4,7 @@ import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
 import { packetType } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
-import { getUserBySocket } from '../../sessions/user.session.js';
+import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 
@@ -120,6 +120,8 @@ export const gameStartHandler = async (socket, payload) => {
     const randomPosition = RANDOM_POSITIONS[randomKey];
     const characterPosition = new CharacterPosition(user.id, randomPosition);
 
+    // Session에 유저 위치정보 업데이트
+    modifyUserData(user.id, { characterPosition: randomPosition });
     // 각 사용자 포지션을 넣어주는 부분
     positionData.push(characterPosition);
   }
