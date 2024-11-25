@@ -1,7 +1,7 @@
 class GameState {
-  constructor(phaseType, nextPahseAt) {
+  constructor(phaseType, nextPhaseAt) {
     this.phaseType = phaseType;
-    this.nextPahseAt = nextPahseAt;
+    this.nextPhaseAt = nextPhaseAt;
   }
 }
 
