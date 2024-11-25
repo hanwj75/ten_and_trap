@@ -114,6 +114,9 @@ export const redis = {
       console.error(err);
     }
   },
+  allDateDel: async () => {
+    await redisClient.flushall();
+  },
 };
 
 // 순위 1~7등

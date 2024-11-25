@@ -13,6 +13,7 @@ export let RoleType = null;
 export let RoomStateType = null;
 export let CharacterStateType = null;
 export let CharacterType = null;
+export let PhaseType = null;
 export const loadProtos = async () => {
   try {
     const root = await protobuf.load(PROTO_PATH);
@@ -31,13 +32,16 @@ export const loadProtos = async () => {
     CharacterStateType = root.lookupEnum('CharacterStateType');
 
     CharacterType = root.lookupEnum('CharacterType');
+
+    PhaseType = root.lookupEnum('PhaseType');
     if (
       GlobalFailCode &&
       CardType &&
       RoleType &&
       RoomStateType &&
       CharacterStateType &&
-      CharacterType
+      CharacterType &&
+      PhaseType
     ) {
       console.log('모든 enum 타입 로드 성공');
     }

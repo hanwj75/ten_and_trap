@@ -9,6 +9,7 @@ import {
   joinRoomHandler,
   leaveRoomHandler,
 } from './room/roomHandler.js';
+import { gamePrepareHandler, gameStartHandler } from './game/gameStateHandler.js';
 
 const testFunction = () => {
   console.log(`이거 지우고 넣으시면 됩니다.`);
@@ -37,21 +38,15 @@ const handlers = {
     handler: joinRandomRoomHandler,
   },
   [packetType.LEAVE_ROOM_REQUEST]: {
-    handler: leaveRoomHandler /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: leaveRoomHandler,
   },
 
   //게임 준비 및 게임 시작
   [packetType.GAME_PREPARE_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
-  },
-  [packetType.GAME_PREPARE_NOTIFICATION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: gamePrepareHandler,
   },
   [packetType.GAME_START_REQUEST]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
-  },
-  [packetType.GAME_START_NOTIFICATION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+    handler: gameStartHandler,
   },
 
   //위치 동기화
