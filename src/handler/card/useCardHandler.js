@@ -51,9 +51,7 @@ enum CardType {
 export const useCardHandler = async (socket, payload) => {
   try {
     const { cardType, targetUserId } = payload.useCardRequest;
-    const isExistCardType = function (cardType) {
-      return CardType.values(cardType);
-    };
+
     // 카드 쓴 사람
     const user = getUserBySocket(socket);
     const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
