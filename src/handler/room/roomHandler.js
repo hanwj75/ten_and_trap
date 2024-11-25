@@ -116,7 +116,6 @@ export const joinRoomHandler = async (socket, payload) => {
   const user = await getUserBySocket(socket);
 
   //게임이 시작했거나 방 인원이 최대인 경우
-  console.log(`🤪 ~ file: roomHandler.js:130 ~ joinRoomHandler ~ roomData.state:`, roomData.state);
   if (roomData.state !== 0) {
     console.error('게임이 시작한 방입니다.');
     const joinRoomPayload = {
