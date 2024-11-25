@@ -7,6 +7,7 @@ import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
+import { setSpawnPoints } from '../../utils/setSpawnPoints.js';
 
 /**
  * @desc 게임준비
@@ -80,14 +81,19 @@ export const gamePrepareHandler = async (socket, payload) => {
     await gameStartHandler(socket, payload);
   }
 };
+
 /**
  * @desc 게임시작
  * @author 한우종
  * @todo 게임준비 상태시 잠시후 state = 2 로 변경
  * 1. gameStateData 추가해줘야함 =>gameState.class추가
+ * 
  * 2. 캐릭터 데이터 넣어줘야함
+ * 
  * 3. 시작하기전 예외처리 해줘야함
+ * 
  * 4. 캐릭터 위치 랜덤하게 줘야함
+ * 
  * 5. 중복위치 방지 해줘야함
  * 
  * message S2CGameStartResponse {
@@ -101,6 +107,7 @@ message S2CGameStartNotification {
     repeated CharacterPositionData characterPositions = 3;
 }
  */
+
 export const gameStartHandler = async (socket, payload) => {
   const user = await getUserBySocket(socket);
   //현재 유저가 있는 방ID
@@ -111,24 +118,26 @@ export const gameStartHandler = async (socket, payload) => {
   const currenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
   //방에 있는 유저
   const users = await JSON.parse(getreadyUser);
-  //캐릭터 위치 정보 초기화
-  const positionData = [];
+  //캐릭터 위치 정보 초기화 + 중복 방지
+  const positionData = setSpawnPoints(users.length);
+
   //캐릭터 랜덤 스폰 위치
   // 각 사용자에 대한 랜덤 위치 생성
-  for (const user of users) {
-    const randomKey = Math.floor(Math.random() * Object.keys(RANDOM_POSITIONS).length) + 1;
-    const randomPosition = RANDOM_POSITIONS[randomKey];
-    const characterPosition = new CharacterPosition(user.id, randomPosition);
 
-    //각 사용자 포지션 넣어주는부분
-    positionData.push(characterPosition);
-  }
+  // for (const user of users) {
+  //   const randomKey = Math.floor(Math.random() * Object.keys(RANDOM_POSITIONS).length) + 1;
+  //   const randomPosition = RANDOM_POSITIONS[randomKey];
+  //   const characterPosition = new CharacterPosition(user.id, randomPosition);
+
+  //   //각 사용자 포지션 넣어주는부분
+  //   positionData.push(characterPosition);
+  // }
 
   if (currenRoomData.state === '1') {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
   }
 
-  const newState = new GameState(PhaseType.values.END, Date.now() + 60000);
+  const newState = new GameState(PhaseType.values.DAY, Date.now() + 60000);
 
   const gameStartNotificationPayload = {
     gameStartNotification: {
