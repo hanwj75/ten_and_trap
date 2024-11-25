@@ -54,10 +54,12 @@ export const gamePrepareHandler = async (socket, payload) => {
   //방 상태 업데이트
   if (currenRoomData.state === '0') {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
+    const reCurrenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
+    reCurrenRoomData.users = JSON.parse(reCurrenRoomData.users);
     //준비 notification 쏴주는부분
     const gamePrepareNotificationPayload = {
       gamePrepareNotification: {
-        room: currenRoomData,
+        room: reCurrenRoomData,
       },
     };
 
