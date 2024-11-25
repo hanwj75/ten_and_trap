@@ -124,15 +124,6 @@ export const gameStartHandler = async (socket, payload) => {
   //캐릭터 랜덤 스폰 위치
   // 각 사용자에 대한 랜덤 위치 생성
 
-  // for (const user of users) {
-  //   const randomKey = Math.floor(Math.random() * Object.keys(RANDOM_POSITIONS).length) + 1;
-  //   const randomPosition = RANDOM_POSITIONS[randomKey];
-  //   const characterPosition = new CharacterPosition(user.id, randomPosition);
-
-  //   //각 사용자 포지션 넣어주는부분
-  //   positionData.push(characterPosition);
-  // }
-
   if (currenRoomData.state === '1') {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
   }
