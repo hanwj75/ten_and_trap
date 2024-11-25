@@ -227,7 +227,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
   //게임이 시작한 경우
   if (roomData.state !== 0) {
     console.error('게임이 시작한 방입니다.');
-    const joinRoomPayload = {
+    const joinRandomRoomPayload = {
       joinRoomResponse: {
         success: false,
         room: null,
