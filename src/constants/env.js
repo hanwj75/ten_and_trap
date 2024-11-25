@@ -8,6 +8,10 @@ const envFiles = {
     HOST: process.env.HOST || 'localhost',
     CLIENT_VERSION: process.env.CLIENT_VERSION || '1.0.0',
   },
+  jwt: {
+    // JWT KEY
+    ACCESS_TOKEN_SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY,
+  },
   client: {},
   database: {
     DB1_HOST: process.env.DB1_HOST || 'localhost',
@@ -27,6 +31,17 @@ const envFiles = {
     DB3_PASSWORD: process.env.DB3_PASSWORD || 'your_password',
     DB3_PORT: process.env.DB3_PORT || 3306,
     DB3_USER: process.env.DB3_USER || 'your_username',
+
+    REDIS_PORT: process.env.REDIS_PORT || 6379,
+    REDIS_HOST: process.env.REDIS_HOST || 'localhost',
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD || 'your_password',
+  },
+  redis: {
+    // REDIS
+    REDIS_HOST: process.env.REDIS_HOST || 'localhost',
+    REDIS_PORT: process.env.REDIS_PORT || 3306,
+    REDIS_USERNAME: process.env.REDIS_USERNAME || 'your_username',
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD || 'your_password',
   },
 };
 
