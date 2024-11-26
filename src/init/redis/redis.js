@@ -94,6 +94,7 @@ export const redis = {
     }
     return null;
   },
+
   // 해당키값의 모든 필드 가져오기
   getAllFieldsFromHash: async (key) => {
     const hashData = await redisClient.hgetall(key); // 모든 필드와 값을 가져옴
@@ -104,6 +105,27 @@ export const redis = {
     }
 
     return hashData; // 해시의 모든 필드와 값을 반환
+  },
+
+  // 키 배열을 받아 해당 필드 value를 가진 모든 필드를 배열로 가져오기
+  getAllFieldsByValue: async (keys, field, fieldValue) => {
+    const dataArray = [];
+    for (const key of keys) {
+      const value = await redisClient.hget(key, field);
+      let hashData;
+      if (value == fieldValue) {
+        hashData = await redisClient.hgetall(key); // 모든 필드와 값을 가져옴
+        hashData.users = JSON.parse(hashData.users);
+        dataArray.push(hashData);
+      }
+    }
+
+    if (dataArray.length <= 0) {
+      console.error(`해시배열이 존재하지 않습니다: ${keys}`);
+      return null; // 해시가 존재하지 않을 때 null 반환
+    }
+
+    return dataArray; // 해시의 모든 필드와 값을 반환
   },
 
   // 키값으로 레디스 데이터 삭제하기

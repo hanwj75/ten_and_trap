@@ -7,7 +7,7 @@ import { updateUserLogin, findUserById } from '../../db/user/user.db.js';
 import envFiles from '../../constants/env.js';
 import { addUser, findUser } from '../../sessions/user.session.js';
 import User from '../../classes/models/user.class.js';
-import { GlobalFailCode } from '../../init/loadProto.js';
+import { CharacterType, GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import Character from '../../classes/models/character.class.js';
 /**
@@ -61,17 +61,21 @@ export const loginHandler = async (socket, payload) => {
         GlobalFailCode.values.AUTHENTICATION_FAILED,
       );
     }
-
+    const stateInfo = { state: 0, nextState: 0, nextStateAt: 0, stateTargetUserId: 0 };
     // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
-    const loginCharacter = new Character(0, 0, 5, 0, {}, 0, 0, {}, 0, 0);
+    const loginCharacter = new Character(1, 3, 5, 0, stateInfo, [], [], [], 1, 2);
+
     // 유저 클래스 생성
     const loginUser = new User(
       checkExistId.id,
       socket,
       email,
       checkExistId.nickName,
+      null,
       loginCharacter,
+      { x: 0, y: 0 },
     );
+
     await addUser(loginUser);
     await updateUserLogin(email);
 
@@ -102,9 +106,9 @@ export const loginHandler = async (socket, payload) => {
       hp: loginCharacter.hp,
       weapon: loginCharacter.weapon,
       stateInfo: JSON.stringify(loginCharacter.stateInfo),
-      equips: loginCharacter.equips,
-      debuffs: loginCharacter.debuffs,
-      handCards: JSON.stringify(loginCharacter.handCards),
+      equips: JSON.stringify(loginCharacter.equips), // 배열을 JSON 문자열로 변환
+      debuffs: JSON.stringify(loginCharacter.debuffs), // 배열을 JSON 문자열로 변환
+      handCards: JSON.stringify(loginCharacter.handCards), // 배열을 JSON 문자열로 변환
       bbangCount: loginCharacter.bbangCount,
       handCardsCount: loginCharacter.handCardsCount,
     };
