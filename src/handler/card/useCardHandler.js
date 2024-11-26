@@ -2,7 +2,7 @@ import { packetType } from '../../constants/header.js';
 import { GlobalFailCode, CardType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { getUserBySocket, getUserById } from '../../sessions/user.session.js';
+import { getUserBySocket, getUserById, modifyUserData } from '../../sessions/user.session.js';
 
 /**
  * @dest 카드 사용 요구
@@ -53,19 +53,16 @@ export const useCardHandler = async (socket, payload) => {
     const { cardType, targetUserId } = payload.useCardRequest;
 
     // 카드 쓴 사람
-    const user = getUserBySocket(socket);
+    const user = await getUserBySocket(socket);
     const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
-    console.log('curRoom:' + userData.joinRoom);
-
     const roomData = await redis.getAllFieldsFromHash(`room:${userData.joinRoom}`);
     roomData.users = await JSON.parse(roomData.users);
-    console.log('Roomuser:' + roomData.users);
+
     // 상대방
     let opponent = 0;
     if (targetUserId != 0) {
-      opponent = getUserById(targetUserId);
+      opponent = await getUserById(Number(targetUserId));
     }
-    console.log('opponent:' + opponent);
 
     // 카드타입이 존재하는 카드인지
     let cardTypeKey = Object.keys(CardType.values).find((key) => CardType.values[key] === cardType);
@@ -80,7 +77,8 @@ export const useCardHandler = async (socket, payload) => {
       console.error('존재하지않는 카드');
     }
     // 손에 카드 있는지 검증
-    if (!user.handCards.some((card) => card.CardType === cardType)) {
+    userData.handCards = JSON.parse(userData.handCards);
+    if (!userData.handCards.some((card) => card.type === cardType)) {
       const useCardResponse = {
         useCardResponse: {
           success: false,
@@ -92,14 +90,29 @@ export const useCardHandler = async (socket, payload) => {
     }
 
     // 유저 정보 업데이트
-    user.handCards = user.handCards.filter((card) => card.cardType !== cardType);
+    for (let i = 0; i < userData.handCards.length; i++) {
+      if (userData.handCards[i].type === cardType) {
+        userData.handCards[i].count -= 1;
+        if (userData.handCards[i].count <= 0) {
+          userData.handCards.splice(i, 1);
+        }
+        break;
+      }
+    }
+    console.log('test2222:' + JSON.stringify(userData.handCards));
+    const curUserData = await redis.getAllFieldsFromHash(`user:${user.id}`);
     const updatedData = {
-      ...user,
-      handCards: user.handCards,
-      handCardsCount: user.handCardsCount - 1,
+      ...curUserData,
+      handCards: userData.handCards,
+      handCardsCount: userData.handCardsCount - 1,
     };
     await redis.addRedisToHash(`user:${user.id}`, updatedData);
 
+    // Session에 유저 joinRoom정보 업데이트
+    modifyUserData(user.id, {
+      handCards: userData.handCards,
+      handCardsCount: userData.handCardsCount - 1,
+    });
     // 나에게 카드 사용 알림
     const useCardResponse = {
       useCardResponse: {
