@@ -12,12 +12,6 @@ export const onEnd = (socket) => async () => {
    * @author 한우종
    */
   const user = await getUserBySocket(socket);
-  if (user) {
-    await removeUser(socket);
-  } else if (!user) {
-    console.error(`존재하지 않는 유저입니다.`);
-  }
-
   const currentUserId = user.id;
   //현재 나가려하는 방의 키값
   const leaveRequestRoomId = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
@@ -27,6 +21,12 @@ export const onEnd = (socket) => async () => {
   const getOwnerId = await redis.getRoomByUserId(`room:${leaveRequestRoomId}`, `ownerId`);
 
   const users = JSON.parse(getLeaveUserId);
+
+  if (user) {
+    await removeUser(socket);
+  } else if (!user) {
+    console.error(`존재하지 않는 유저입니다.`);
+  }
 
   // 현재 유저의 socket.id에 해당하는 객체의 인덱스를 찾음
   if (users) {

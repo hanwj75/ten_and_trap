@@ -4,7 +4,7 @@ import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
 import { packetType } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
-import { getUserBySocket } from '../../sessions/user.session.js';
+import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 
@@ -54,10 +54,12 @@ export const gamePrepareHandler = async (socket, payload) => {
   //방 상태 업데이트
   if (currenRoomData.state === '0') {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
+    const reCurrenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
+    reCurrenRoomData.users = JSON.parse(reCurrenRoomData.users);
     //준비 notification 쏴주는부분
     const gamePrepareNotificationPayload = {
       gamePrepareNotification: {
-        room: currenRoomData,
+        room: reCurrenRoomData,
       },
     };
 
@@ -120,7 +122,9 @@ export const gameStartHandler = async (socket, payload) => {
     const randomPosition = RANDOM_POSITIONS[randomKey];
     const characterPosition = new CharacterPosition(user.id, randomPosition);
 
-    //각 사용자 포지션 넣어주는부분
+    // Session에 유저 위치정보 업데이트
+    modifyUserData(user.id, { characterPosition: randomPosition });
+    // 각 사용자 포지션을 넣어주는 부분
     positionData.push(characterPosition);
   }
 
@@ -128,7 +132,7 @@ export const gameStartHandler = async (socket, payload) => {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
   }
 
-  const newState = new GameState(PhaseType.values.END, Date.now() + 60000);
+  const newState = new GameState(PhaseType.values.DAY, Date.now() + 60000);
 
   const gameStartNotificationPayload = {
     gameStartNotification: {
