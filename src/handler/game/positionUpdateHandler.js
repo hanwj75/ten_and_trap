@@ -33,11 +33,6 @@ export const positionUpdateHandler = async (socket, payload) => {
   const positions = { x, y };
 
   const user = await getUserBySocket(socket);
-  // const currenUserRoomId = await redis.getRoomByUserId(`user:${user.id}`, 'joinRoom');
-  // //현재 방에있는 유저 목록
-  // const getreadyUser = await redis.getRoomByUserId(`room:${currenUserRoomId}`, 'users');
-  // //방에 있는 유저
-  // const users = await JSON.parse(getreadyUser);
 
   // 현재 사용자의 위치 업데이트
   user.characterPosition = positions; // 사용자 객체에 현재 위치 저장
@@ -47,7 +42,7 @@ export const positionUpdateHandler = async (socket, payload) => {
 
   let users = await findUsersByJoinRoom(user.joinRoom);
 
-  console.log(users[0].characterPosition);
+  // console.log('1', users[0].characterPosition, '2', users[1].characterPosition);
   // 모든 사용자 위치 데이터 생성
   const characterPositions = users.map((u) => ({
     id: u.id,
@@ -61,10 +56,7 @@ export const positionUpdateHandler = async (socket, payload) => {
     x: positions.x,
     y: positions.y,
   };
-  console.log(
-    `🤪 ~ file: positionUpdateHandler.js:56 ~ positionUpdateHandler ~ currentUserPosition:`,
-    currentUserPosition,
-  );
+
   const positionUpdateNotificationPayload = {
     positionUpdateNotification: {
       characterPositions: [...characterPositions, currentUserPosition],
