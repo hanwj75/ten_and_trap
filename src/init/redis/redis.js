@@ -114,8 +114,39 @@ export const redis = {
       console.error(err);
     }
   },
+
   allDateDel: async () => {
     await redisClient.flushall();
+  },
+
+  setPhase: async (roomId, phaseType) => {
+    await redisClient.set(`roomId:${roomId}`, phaseType);
+  },
+
+  // updatePhase: async (roomId) => {
+  //   const currentPhaseType = await redisClient.get(`roomId:${roomId}`);
+  //   if (+currentPhaseType === 1) {
+  //     await redis.setPhase(`roomId:${roomId}`, 3);
+  //   } else if (+currentPhaseType === 3) {
+  //     await redis.setPhase(`roomId:${roomId}`, 1);
+  //   }
+  // },
+
+  // startPhaseUpdate: (roomId) => {
+  //   setInterval(async () => {
+  //     await redis.updatePhase(roomId);
+  //   }, 60000); // 60초 = 60000ms
+  // },
+
+  updatePhaseType: async (roomId) => {
+    try {
+      const currentPhaseType = await redisClient.get(`roomId:${roomId}`);
+
+      const nextPhaseType = currentPhaseType === '1' ? '3' : '1';
+      await redisClient.set(`roomId:${roomId}`, nextPhaseType);
+    } catch (err) {
+      console.error(err);
+    }
   },
 };
 

@@ -7,6 +7,7 @@ import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
+import { setRole } from '../../utils/setRole.js';
 import { setSpawnPoints } from '../../utils/setSpawnPoints.js';
 
 /**
@@ -35,6 +36,29 @@ export const gamePrepareHandler = async (socket, payload) => {
   const currenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
   //방에 있는 유저
   const users = await JSON.parse(getreadyUser);
+
+  // 요청한 유저가 owner인지 확인
+  if (+currenRoomData.ownerId !== +user.id) {
+    const gamePreparePayload = {
+      gamePrepareResponse: {
+        success: false,
+        failCode: GlobalFailCode.values.NOT_ROOM_OWNER,
+      },
+    };
+
+    socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
+    return;
+  }
+
+  console.log(currenRoomData);
+
+  currenRoomData.users.forEach((user, idx) => {
+    user.character.characterType = idx + 1;
+  });
+
+  const roleUser = setRole(users.length, users);
+
+  currenRoomData.users = roleUser;
 
   if (!user) {
     console.error(`존재하지 않는 유저입니다.`);
@@ -121,9 +145,6 @@ export const gameStartHandler = async (socket, payload) => {
   //캐릭터 위치 정보 초기화 + 중복 방지
   const positionData = setSpawnPoints(users.length);
 
-  //캐릭터 랜덤 스폰 위치
-  // 각 사용자에 대한 랜덤 위치 생성
-
   if (currenRoomData.state === '1') {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
   }
@@ -151,6 +172,10 @@ export const gameStartHandler = async (socket, payload) => {
       failCode: GlobalFailCode.values.NONE_FAILCODE,
     },
   };
+
+  // redis.setPhase(currenRoomData.id, newState.phaseType);
+
+  // setInterval(redis.updatePhaseType(currenRoomData.id), 60000);
 
   socket.write(createResponse(gameStartPayload, packetType.GAME_START_RESPONSE, 0));
 };
