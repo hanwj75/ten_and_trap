@@ -59,9 +59,9 @@ export const gamePrepareHandler = async (socket, payload) => {
 
       reCurrenRoomData.users = JSON.parse(reCurrenRoomData.users);
       //준비 notification 쏴주는부분
-      const gamePrepareNotificationPayload = { gamePrepareNotification: { room: reCurrenRoomData } };
+      const notification = { gamePrepareNotification: { room: reCurrenRoomData } };
 
-      sendNotificationToUsers(users, gamePrepareNotificationPayload, packetType.GAME_PREPARE_NOTIFICATION, 0);
+      sendNotificationToUsers(users, notification, packetType.GAME_PREPARE_NOTIFICATION, 0);
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
