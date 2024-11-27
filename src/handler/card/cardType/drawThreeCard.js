@@ -1,7 +1,4 @@
 import { getGameAssets } from '../../../init/assets.js';
-import { CardType, GlobalFailCode } from '../../../init/loadProto.js';
-import { redis } from '../../../init/redis/redis.js';
-import { getUserById, modifyUserData } from '../../../sessions/user.session.js';
 export const drawThreeCard = async (userData) => {
   const { card } = getGameAssets();
   console.log(card.data[0].id);
