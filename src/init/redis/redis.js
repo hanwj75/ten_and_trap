@@ -38,11 +38,14 @@ export const redis = {
     return await redisClient.get(key);
   },
 
-  // 방 생성 시 저장
-  addRoomRedis: async (key, val) => {
+  // 데이터 해시로 저장
+  addRedisToHash: async (key, val) => {
     return await redisClient.hset(key, ...Object.entries(val).flat());
   },
 
+  setRoomByUserId: async (key, field, val) => {
+    return await redisClient.hset(key, field, val);
+  },
   // 방에 방장 찾기
   getRoomByUserId: async (key, val) => {
     // 방 정보가 해시로 저장되어 있는지 확인
@@ -54,6 +57,13 @@ export const redis = {
     }
 
     return roomValue;
+  },
+
+  // 방의 사용자 목록을 Redis에 저장하는 함수
+  updateUsersToRoom: async (key, fiedl, val) => {
+    // Redis에 사용자 목록 저장
+    await redisClient.hset(`room:${key}`, fiedl, JSON.stringify(val));
+    console.log(`사용자 목록이 방 ${key}에 저장되었습니다.`);
   },
 
   // 방에 해당하는 모든 키 가져오기
@@ -75,15 +85,16 @@ export const redis = {
   },
 
   // 필드 값으로 키 찾기
-  findRoomKeyToField: async (keys, field) => {
+  findRoomKeyToField: async (keys, field, fieldvalue) => {
     for (const key of keys) {
-      const value = await redisClient.hget(key, 'id');
-      if (value == field) {
+      const value = await redisClient.hget(key, field);
+      if (value == fieldvalue) {
         return key;
       }
     }
     return null;
   },
+
   // 해당키값의 모든 필드 가져오기
   getAllFieldsFromHash: async (key) => {
     const hashData = await redisClient.hgetall(key); // 모든 필드와 값을 가져옴
@@ -96,6 +107,27 @@ export const redis = {
     return hashData; // 해시의 모든 필드와 값을 반환
   },
 
+  // 키 배열을 받아 해당 필드 value를 가진 모든 필드를 배열로 가져오기
+  getAllFieldsByValue: async (keys, field, fieldValue) => {
+    const dataArray = [];
+    for (const key of keys) {
+      const value = await redisClient.hget(key, field);
+      let hashData;
+      if (value == fieldValue) {
+        hashData = await redisClient.hgetall(key); // 모든 필드와 값을 가져옴
+        hashData.users = JSON.parse(hashData.users);
+        dataArray.push(hashData);
+      }
+    }
+
+    if (dataArray.length <= 0) {
+      console.error(`해시배열이 존재하지 않습니다: ${keys}`);
+      return null; // 해시가 존재하지 않을 때 null 반환
+    }
+
+    return dataArray; // 해시의 모든 필드와 값을 반환
+  },
+
   // 키값으로 레디스 데이터 삭제하기
   delRedisByKey: async (key) => {
     try {
@@ -103,6 +135,9 @@ export const redis = {
     } catch (err) {
       console.error(err);
     }
+  },
+  allDateDel: async () => {
+    await redisClient.flushall();
   },
 };
 
