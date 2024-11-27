@@ -79,9 +79,9 @@ export const getRoomListHandler = async (socket, payload) => {
     if (roomKeys.length > 0) {
       allRooms = await redis.getAllFieldsByValue(roomKeys, 'state', '0');
     }
-    const getRoomListPayload = { getRoomListResponse: { rooms: allRooms } };
+    const roomPayload = { getRoomListResponse: { rooms: allRooms } };
 
-    socket.write(createResponse(getRoomListPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
   } catch (err) {
     console.error(`방 리스트 에러`, err);
   }
@@ -105,21 +105,21 @@ export const joinRoomHandler = async (socket, payload) => {
     //게임이 시작했거나 방 인원이 최대인 경우
     if (roomData.state !== '0') {
       console.error('게임이 시작한 방입니다.');
-      const joinRoomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
-      socket.write(createResponse(joinRoomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+      const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
+      socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
     }
 
     const newUserInfo = { id: user.id, nickname: user.nickName, character: user.character };
 
-    const joinRoomNotificationPayload = { joinRoomNotification: { joinUser: newUserInfo } };
+    const notification = { joinRoomNotification: { joinUser: newUserInfo } };
 
     roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
 
-    sendNotificationToUsers(roomData.users, joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0);
+    sendNotificationToUsers(roomData.users, notification, packetType.JOIN_ROOM_NOTIFICATION, 0);
     if (roomData.users.length >= roomData.maxUserNum) {
       console.error('최대 인원입니다.');
-      const joinRoomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
-      socket.write(createResponse(joinRoomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+      const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
+      socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
       return;
     }
     // 유저를 방의 유저 목록에 추가
@@ -136,10 +136,10 @@ export const joinRoomHandler = async (socket, payload) => {
     // Session에 유저 joinRoom정보 업데이트
     modifyUserData(user.id, { joinRoom: roomData.id });
 
-    const joinRoomPayload = {
+    const roomPayload = {
       joinRoomResponse: { success: true, room: roomData, failCode: failCode.NONE_FAILCODE },
     };
-    socket.write(createResponse(joinRoomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
   } catch (err) {
     console.error(`방 입장 에러`, err);
   }
