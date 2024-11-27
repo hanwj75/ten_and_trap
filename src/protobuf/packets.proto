@@ -192,10 +192,16 @@ message S2CGameWinNotification {
     string winner = 2;
 }
 
+// message S2CGameEndNotification {
+//     string loser = 1;
+//     string winner = 2;
+// }
+
 message S2CGameEndNotification {
-    string loser = 1;
-    string winner = 2;
+    repeated int64 winners = 1;
+    WinType winType = 2;
 }
+
 
 message CardData {
     CardType type = 1;
@@ -379,6 +385,12 @@ enum RoleType {
     HITMAN = 3;
     PSYCHOPATH = 4;
 }
+
+enum WinType {
+    TARGET_AND_BODYGUARD_WIN = 0;
+    HITMAN_WIN = 1;
+    PSYCHOPATH_WIN = 2;
+    }
 
 enum RoomStateType {
     WAIT = 0;

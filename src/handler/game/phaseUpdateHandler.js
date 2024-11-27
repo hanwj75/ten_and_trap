@@ -9,6 +9,7 @@ import { packetType } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
+import { gameEndNotification } from './gameEndHandler.js';
 
 export const phaseUpdateHandler = async (room, nextState) => {
   try {
@@ -16,28 +17,34 @@ export const phaseUpdateHandler = async (room, nextState) => {
     const phase = room.phase;
 
     const users = await JSON.parse(room.users);
-    if (users.length > 0) {
-      if (phase === '3') {
-        console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
-        await redis.updateUsersToRoom(room.id, `phase`, 1);
-      } else if (phase === '1') {
-        console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
-        await redis.updateUsersToRoom(room.id, `phase`, 3);
-      }
 
-      let nextPhaseAt = Date.now() + nextState;
-      const pahseUpdatePayload = {
-        phaseUpdateNotification: {
-          phaseType: phase === '3' ? '1' : '3',
-          nextPhaseAt,
-          CharacterPosition,
-        },
-      };
-      sendNotificationToUsers(users, pahseUpdatePayload, packetType.PHASE_UPDATE_NOTIFITION, 0);
-    } else {
-      console.error(`방에 유저가 없음`);
-      return;
+    users.forEach((user) => {
+      console.log(user.character.handCardsCount);
+    });
+
+    const isWinner = users.findIndex((user) => user.character.handCardsCount === 2);
+
+    if (phase === '3') {
+      console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      await redis.updateUsersToRoom(room.id, `phase`, 1);
+
+      if (isWinner !== -1) {
+        gameEndNotification(room.id);
+      }
+    } else if (phase === '1') {
+      console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      await redis.updateUsersToRoom(room.id, `phase`, 3);
     }
+
+    let nextPhaseAt = Date.now() + nextState;
+    const pahseUpdatePayload = {
+      phaseUpdateNotification: {
+        phaseType: phase === '3' ? '1' : '3',
+        nextPhaseAt,
+        CharacterPosition,
+      },
+    };
+    sendNotificationToUsers(users, pahseUpdatePayload, packetType.PHASE_UPDATE_NOTIFITION, 0);
   } catch (err) {
     console.error(`페이즈 전환 에러`, err);
   }
@@ -73,6 +80,7 @@ export const startCustomInterval = async (socket, roomId) => {
       const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
       const users = room.users ? JSON.parse(room.users) : []; // 유저 목록 가져오기
       // 유저가 없으면 인터벌 중지
+      console.log('test: ', users, users.length);
       if (users.length === 0) {
         console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
         return; // 더 이상 진행하지 않음
