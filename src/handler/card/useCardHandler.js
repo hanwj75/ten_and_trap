@@ -162,14 +162,6 @@ export const useCardHandler = async (socket, payload) => {
       0,
     );
 
-    const userInfoData = await getUserBySocket(socket);
-    const userInfo = {
-      id: userInfoData.id,
-      nickname: userInfoData.nickName,
-      character: userInfoData.character,
-    };
-
-    console.log('test1111:' + JSON.stringify(userInfo.character));
     const userUpdateNotificationPayload = {
       userUpdateNotification: {
         user: roomData.users,
