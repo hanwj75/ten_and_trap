@@ -10,7 +10,7 @@ const initServer = async () => {
     await redis.allDateDel(); //서버 재실행시 데이터 전부 삭제
     await testAllConnections(pools);
   } catch (err) {
-    console.error(err);
+    console.error(`initServer 에러`, err);
     process.exit(1);
   }
 };
