@@ -1,58 +1,47 @@
 import { RoleType } from '../init/loadProto.js';
 
-export const setRole = (userNum, users) => {
-  let roles = [];
+export const setRole = (users) => {
+  //   const roles = [];
+  //   const userNum = users.length;
 
-  if (userNum === 4) {
-    roles = [
-      RoleType.values.TARGET,
-      RoleType.values.HITMAN,
-      RoleType.values.HITMAN,
-      RoleType.values.PSYCHOPATH,
-    ];
-  }
+  //   // 타겟 1 고정
+  //   roles.push(RoleType.values.TARGET);
 
-  if (userNum === 5) {
-    roles = [
-      RoleType.values.TARGET,
-      RoleType.values.BODYGUARD,
-      RoleType.values.HITMAN,
-      RoleType.values.HITMAN,
-      RoleType.values.PSYCHOPATH,
-    ];
-  }
+  //   // 2인 : 타겟1, 히트맨1
+  //   if (userNum >= 2) {
+  //     roles.push(RoleType.values.HITMAN);
+  //   }
 
-  if (userNum === 6) {
-    roles = [
-      RoleType.values.TARGET,
-      RoleType.values.BODYGUARD,
-      RoleType.values.HITMAN,
-      RoleType.values.HITMAN,
-      RoleType.values.HITMAN,
-      RoleType.values.PSYCHOPATH,
-    ];
-  }
+  //   // 3인 : 타겟1, 히트맨1, 싸이코패스1
+  //   if (userNum >= 3) {
+  //     roles.push(RoleType.values.PSYCHOPATH);
+  //   }
 
-  if (userNum === 7) {
-    roles = [
-      RoleType.values.TARGET,
-      RoleType.values.BODYGUARD,
-      RoleType.values.BODYGUARD,
-      RoleType.values.HITMAN,
-      RoleType.values.HITMAN,
-      RoleType.values.HITMAN,
-      RoleType.values.PSYCHOPATH,
-    ];
-  }
+  //   // 4인 : 타겟1, 히트맨2, 싸이코패스1
+  //   if (userNum >= 4) {
+  //     roles.push(RoleType.values.HITMAN);
+  //   }
 
-  for (let i = roles.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [roles[i], roles[j]] = [roles[j], roles[i]];
-  }
+  //   // 5인 : 타겟1, 보디가드1, 히트맨2, 싸이코패스1
+  //   if (userNum >= 5) {
+  //     roles.push(RoleType.values.BODYGUARD);
+  //   }
 
-  users.forEach((user, index) => {
-    user.character.roleType = roles[index];
-  });
+  //   // 6인 : 타겟1, 보디가드1, 히트맨3, 싸이코패스1
+  //   if (userNum >= 6) {
+  //     roles.push(RoleType.values.HITMAN);
+  //   }
+
+  //   // 7인 : 타겟1, 보디가드2, 히트맨3, 싸이코패스1
+  //   if (userNum >= 7) {
+  //     roles.push(RoleType.values.BODYGUARD);
+  //   }
+
+  //     for(let i = array.length-1; i>0)
+
+  users[0].character.roleType = RoleType.values.TARGET;
+
+  users[1].character.roleType = RoleType.values.HITMAN;
 
   return users;
 };

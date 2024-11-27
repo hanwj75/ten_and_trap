@@ -4,6 +4,7 @@ import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
 import { packetType } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
+import { getRoomByRoomId } from '../../sessions/room.session.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
@@ -50,15 +51,9 @@ export const gamePrepareHandler = async (socket, payload) => {
     return;
   }
 
-  console.log(currenRoomData);
+  const parseUser = JSON.parse(currenRoomData.users);
 
-  currenRoomData.users.forEach((user, idx) => {
-    user.character.characterType = idx + 1;
-  });
-
-  const roleUser = setRole(users.length, users);
-
-  currenRoomData.users = roleUser;
+  setRole(parseUser);
 
   if (!user) {
     console.error(`존재하지 않는 유저입니다.`);
@@ -80,7 +75,8 @@ export const gamePrepareHandler = async (socket, payload) => {
   if (currenRoomData.state === '0') {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
     const reCurrenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
-    reCurrenRoomData.users = JSON.parse(reCurrenRoomData.users);
+    reCurrenRoomData.users = parseUser;
+    await redis.updateUsersToRoom(currenUserRoomId, `users`, reCurrenRoomData.users);
     //준비 notification 쏴주는부분
     const gamePrepareNotificationPayload = {
       gamePrepareNotification: {
@@ -89,7 +85,7 @@ export const gamePrepareHandler = async (socket, payload) => {
     };
 
     sendNotificationToUsers(
-      users,
+      parseUser,
       gamePrepareNotificationPayload,
       packetType.GAME_PREPARE_NOTIFICATION,
       0,
@@ -103,8 +99,6 @@ export const gamePrepareHandler = async (socket, payload) => {
       },
     };
     socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
-
-    await gameStartHandler(socket, payload);
   }
 };
 
@@ -147,6 +141,8 @@ export const gameStartHandler = async (socket, payload) => {
   //캐릭터 위치 정보 초기화 + 중복 방지
   const positionData = setSpawnPoints(users.length);
 
+  console.log(users);
+
   if (currenRoomData.state === '1') {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
   }
@@ -180,4 +176,44 @@ export const gameStartHandler = async (socket, payload) => {
   // setInterval(redis.updatePhaseType(currenRoomData.id), 60000);
 
   socket.write(createResponse(gameStartPayload, packetType.GAME_START_RESPONSE, 0));
+};
+
+// 페이즈가 변경사항을 업데이트 하는 함수가 주기적으로 실행될 떄 마다 체크해줘야되는...
+// S2CGameEndNotification gameEndNotification =39;
+// message S2CGameEndNotification {
+//   string loser = 1;
+//   string winner = 2;
+// }
+
+// gameEnd
+export const gameEndHandler = async (socket, payload) => {
+  const user = await getUserBySocket(socket);
+
+  //현재 유저가 있는 방ID
+  const currenUserRoomId = await redis.getRoomByUserId(`user:${user.id}`, 'joinRoom');
+  //현재 방에있는 유저 목록
+  const getreadyUser = await redis.getRoomByUserId(`room:${currenUserRoomId}`, 'users');
+  //방 상태 정보
+  const currenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
+  //방에 있는 유저
+  const users = await JSON.parse(getreadyUser);
+
+  const winners = [];
+
+  if (+currenRoomData.phase === 1) {
+    users.forEach((user) => {
+      if (+user.handCardsCount === 10) {
+        winners.push(user.id);
+      }
+    });
+  }
+
+  const gameEndNotificationPayload = {
+    gameEndNotification: {
+      winners,
+      // wintype
+    },
+  };
+
+  sendNotificationToUsers(users, gameEndNotificationPayload, packetType.GAME_END_NOTIFICATION, 0);
 };

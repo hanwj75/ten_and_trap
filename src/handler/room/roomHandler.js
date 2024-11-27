@@ -54,6 +54,7 @@ export const createRoomHandler = async (socket, payload) => {
     maxUserNum: newRoom.maxUserNum,
     state: newRoom.state,
     users: JSON.stringify(newRoom.users),
+    phase: newRoom.phase,
   });
 
   const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);

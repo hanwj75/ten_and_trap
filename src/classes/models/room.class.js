@@ -6,6 +6,7 @@ class Room {
     this.maxUserNum = maxUserNum < 4 ? 4 : maxUserNum;
     this.state = state; //대기=0 , 준비 =1 , 시작 = 2인듯
     this.users = users; //방에 들어온 유저 정보인듯
+    this.phase = 1;
   }
 }
 
