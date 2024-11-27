@@ -3,7 +3,8 @@ import { GlobalFailCode, CardType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { getUserBySocket, getUserById, modifyUserData } from '../../sessions/user.session.js';
-
+import { drawThreeCard } from './cardType/drawThreeCard.js';
+import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 /**
  * @dest 카드 사용 요구
  * @author 박건순
@@ -89,6 +90,17 @@ export const useCardHandler = async (socket, payload) => {
       console.error('손에 카드 없음');
     }
 
+    // 카드별 함수 실행
+    switch (cardType) {
+      case 1:
+        drawThreeCard(userData);
+        break;
+      default:
+        console.log('default');
+        break;
+    }
+
+    // Todo 카드함수에 넣을 생각도 해보는중
     // 유저 정보 업데이트
     for (let i = 0; i < userData.handCards.length; i++) {
       if (userData.handCards[i].type === cardType) {
@@ -99,20 +111,32 @@ export const useCardHandler = async (socket, payload) => {
         break;
       }
     }
-    console.log('test2222:' + JSON.stringify(userData.handCards));
-    const curUserData = await redis.getAllFieldsFromHash(`user:${user.id}`);
-    const updatedData = {
-      ...curUserData,
-      handCards: userData.handCards,
-      handCardsCount: userData.handCardsCount - 1,
+    const updateRoomData = roomData.users.find((user) => user.id == userData.id);
+    updateRoomData.character.handCards = userData.handCards;
+    updateRoomData.character.handCardsCount = userData.handCardsCount;
+    const updatedRoomData = {
+      ...roomData,
+      users: JSON.stringify(roomData.users),
     };
-    await redis.addRedisToHash(`user:${user.id}`, updatedData);
+    await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 
-    // Session에 유저 joinRoom정보 업데이트
+    userData.handCardsCount--;
+    const updatedUserData = {
+      ...userData,
+      handCards: JSON.stringify(userData.handCards),
+      handCardsCount: userData.handCardsCount,
+    };
+    await redis.addRedisToHash(`user:${user.id}`, updatedUserData);
+
+    console.log('test111:' + JSON.stringify(userData.handCards));
+    // Session에 유저 정보 업데이트
     modifyUserData(user.id, {
-      handCards: userData.handCards,
-      handCardsCount: userData.handCardsCount - 1,
+      character: {
+        handCards: userData.handCards,
+        handCardsCount: userData.handCardsCount,
+      },
     });
+
     // 나에게 카드 사용 알림
     const useCardResponse = {
       useCardResponse: {
@@ -131,14 +155,33 @@ export const useCardHandler = async (socket, payload) => {
       },
     };
 
-    roomData.users.forEach((element) => {
-      if (element.id != user.id) {
-        const user = getUserById(Number(element.id));
-        user.socket.write(
-          createResponse(useCardNotificationPayload, packetType.USE_CARD_NOTIFICATION, 0),
-        );
-      }
-    });
+    sendNotificationToUsers(
+      roomData.users,
+      useCardNotificationPayload,
+      packetType.USE_CARD_NOTIFICATION,
+      0,
+    );
+
+    const userInfoData = await getUserBySocket(socket);
+    const userInfo = {
+      id: userInfoData.id,
+      nickname: userInfoData.nickName,
+      character: userInfoData.character,
+    };
+
+    console.log('test1111:' + JSON.stringify(userInfo.character));
+    const userUpdateNotificationPayload = {
+      userUpdateNotification: {
+        user: roomData.users,
+      },
+    };
+
+    sendNotificationToUsers(
+      roomData.users,
+      userUpdateNotificationPayload,
+      packetType.USER_UPDATE_NOTIFICATION,
+      0,
+    );
   } catch (err) {
     console.error('카드 사용 에러:', err);
   }
