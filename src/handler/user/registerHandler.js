@@ -44,6 +44,6 @@ export const registerHandler = async (socket, payload) => {
     const registerResponse = createResponse(responsePayload, packetType.REGISTER_RESPONSE, 0);
     socket.write(registerResponse);
   } catch (err) {
-    console.error(err);
+    console.error(`회원가입 에러`, err);
   }
 };
