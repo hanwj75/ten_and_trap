@@ -2,7 +2,7 @@ import CharacterPosition from '../../classes/models/characterPosition.class.js';
 import GameState from '../../classes/models/gameState.class.js';
 import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
 import { packetType } from '../../constants/header.js';
-import { GlobalFailCode } from '../../init/loadProto.js';
+import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
@@ -17,7 +17,7 @@ import { button } from './phaseUpdateHandler.js';
 export const gamePrepareHandler = async (socket, payload) => {
   try {
     console.log(`게임준비!`);
-
+    const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
     //현재 유저가 있는 방ID
     const currenUserRoomId = await redis.getRoomByUserId(`user:${user.id}`, 'joinRoom');
@@ -37,7 +37,7 @@ export const gamePrepareHandler = async (socket, payload) => {
     //   const gamePreparePayload = {
     //     gamePrepareResponse: {
     //       success: false,
-    //       failCode: GlobalFailCode.values.INVALID_ROOM_STATE,
+    //       failCode: failCode.INVALID_ROOM_STATE,
     //     },
     //   };
     //   socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
@@ -46,14 +46,9 @@ export const gamePrepareHandler = async (socket, payload) => {
 
     // 요청한 유저가 owner인지 확인
     if (+currenRoomData.ownerId !== +user.id) {
-      const gamePreparePayload = {
-        gamePrepareResponse: {
-          success: false,
-          failCode: GlobalFailCode.values.NOT_ROOM_OWNER,
-        },
-      };
+      const gamePayload = { gamePrepareResponse: { success: false, failCode: failCode.NOT_ROOM_OWNER } };
 
-      socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
+      socket.write(createResponse(gamePayload, packetType.GAME_PREPARE_RESPONSE, 0));
       return;
     }
 
@@ -61,47 +56,31 @@ export const gamePrepareHandler = async (socket, payload) => {
     if (currenRoomData.state === '0') {
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
       const reCurrenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
+
       reCurrenRoomData.users = JSON.parse(reCurrenRoomData.users);
       //준비 notification 쏴주는부분
-      const gamePrepareNotificationPayload = {
-        gamePrepareNotification: {
-          room: reCurrenRoomData,
-        },
-      };
+      const gamePrepareNotificationPayload = { gamePrepareNotification: { room: reCurrenRoomData } };
 
-      sendNotificationToUsers(
-        users,
-        gamePrepareNotificationPayload,
-        packetType.GAME_PREPARE_NOTIFICATION,
-        0,
-      );
+      sendNotificationToUsers(users, gamePrepareNotificationPayload, packetType.GAME_PREPARE_NOTIFICATION, 0);
 
       //게임 준비 응답
-      const gamePreparePayload = {
-        gamePrepareResponse: {
-          success: true,
-          failCode: GlobalFailCode.values.NONE_FAILCODE,
-        },
-      };
-      socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
+      const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
+      socket.write(createResponse(gamePayload, packetType.GAME_PREPARE_RESPONSE, 0));
     }
   } catch (err) {
     console.error(`게임준비 에러`, err);
   }
 };
+
 /**
  * @desc 게임시작
  * @author 한우종
  * @todo 게임준비 상태시 잠시후 state = 2 로 변경
- * 1. gameStateData 추가해줘야함 =>gameState.class추가
- * 2. 캐릭터 데이터 넣어줘야함
- * 3. 시작하기전 예외처리 해줘야함
- * 4. 캐릭터 위치 랜덤하게 줘야함
- * 5. 중복위치 방지 해줘야함
  */
 export const gameStartHandler = async (socket, payload) => {
   try {
     console.log(`게임시작!`);
+    const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
     //현재 유저가 있는 방ID
     const currenUserRoomId = await redis.getRoomByUserId(`user:${user.id}`, 'joinRoom');
@@ -129,35 +108,18 @@ export const gameStartHandler = async (socket, payload) => {
     if (currenRoomData.state === '1') {
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
     }
-
-    const newState = new GameState(1, Date.now() + 5000);
+    const currentPhase = PhaseType.values.DAY;
+    const countTime = Date.now() + 5000;
+    const newState = new GameState(currentPhase, countTime);
     //페이즈 업데이트 실행
     await button(socket);
 
     //게임 시작 notification
-    const gameStartNotificationPayload = {
-      gameStartNotification: {
-        gameState: newState,
-        users: users,
-        characterPositions: positionData,
-      },
-    };
+    const notification = { gameStartNotification: { gameState: newState, users: users, characterPositions: positionData } };
+    sendNotificationToUsers(users, notification, packetType.GAME_START_NOTIFICATION, 0);
 
-    sendNotificationToUsers(
-      users,
-      gameStartNotificationPayload,
-      packetType.GAME_START_NOTIFICATION,
-      0,
-    );
-
-    const gameStartPayload = {
-      gameStartResponse: {
-        success: true,
-        failCode: GlobalFailCode.values.NONE_FAILCODE,
-      },
-    };
-
-    socket.write(createResponse(gameStartPayload, packetType.GAME_START_RESPONSE, 0));
+    const gamePayload = { gameStartResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
+    socket.write(createResponse(gamePayload, packetType.GAME_START_RESPONSE, 0));
   } catch (err) {
     console.error(`게임시작 에러`, err);
   }
