@@ -44,6 +44,19 @@ export const gamePrepareHandler = async (socket, payload) => {
     //   return;
     // }
 
+    // 요청한 유저가 owner인지 확인
+    if (+currenRoomData.ownerId !== +user.id) {
+      const gamePreparePayload = {
+        gamePrepareResponse: {
+          success: false,
+          failCode: GlobalFailCode.values.NOT_ROOM_OWNER,
+        },
+      };
+
+      socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
+      return;
+    }
+
     //방 상태 업데이트
     if (currenRoomData.state === '0') {
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
