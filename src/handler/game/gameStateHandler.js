@@ -7,6 +7,7 @@ import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
+import { button } from './phaseUpdateHandler.js';
 
 /**
  * @desc 게임준비
@@ -78,8 +79,6 @@ export const gamePrepareHandler = async (socket, payload) => {
       },
     };
     socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
-
-    await gameStartHandler(socket, payload);
   }
 };
 /**
@@ -132,8 +131,8 @@ export const gameStartHandler = async (socket, payload) => {
     await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
   }
 
-  const newState = new GameState(PhaseType.values.DAY, Date.now() + 60000);
-
+  const newState = new GameState(PhaseType.values.DAY, Date.now() + 5000);
+  await button(socket);
   const gameStartNotificationPayload = {
     gameStartNotification: {
       gameState: newState,

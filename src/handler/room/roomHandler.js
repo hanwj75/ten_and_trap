@@ -17,6 +17,7 @@ export const createRoomHandler = async (socket, payload) => {
   const { name, maxUserNum } = payload.createRoomRequest;
 
   const user = await getUserBySocket(socket);
+
   if (!user) {
     console.error(`존재하지 않는 유저입니다.`);
     return;
@@ -54,6 +55,8 @@ export const createRoomHandler = async (socket, payload) => {
     maxUserNum: newRoom.maxUserNum,
     state: newRoom.state,
     users: JSON.stringify(newRoom.users),
+    isPushed: newRoom.isPushed,
+    phase: newRoom.phase,
   });
 
   const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
@@ -90,11 +93,7 @@ export const getRoomListHandler = async (socket, payload) => {
     if (roomKeys.length > 0) {
       allRooms = await redis.getAllFieldsByValue(roomKeys, 'state', '0');
     }
-    const getRoomListPayload = {
-      getRoomListResponse: {
-        rooms: allRooms,
-      },
-    };
+    const getRoomListPayload = { getRoomListResponse: { rooms: allRooms } };
 
     socket.write(createResponse(getRoomListPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
   } catch (err) {
