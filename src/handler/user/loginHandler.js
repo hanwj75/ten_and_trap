@@ -7,7 +7,7 @@ import { updateUserLogin, findUserById } from '../../db/user/user.db.js';
 import envFiles from '../../constants/env.js';
 import { addUser, findUser } from '../../sessions/user.session.js';
 import User from '../../classes/models/user.class.js';
-import { CharacterType, GlobalFailCode } from '../../init/loadProto.js';
+import { GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import Character from '../../classes/models/character.class.js';
 /**
