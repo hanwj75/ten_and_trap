@@ -85,8 +85,12 @@ const handlers = {
 };
 
 export const getProtoPacketType = (packetType) => {
-  if (!handlers[packetType]) {
-    console.error(`Handers Packet Type Error`, packetType);
+  try {
+    if (!handlers[packetType]) {
+      console.error(`Handers Packet Type Error`, packetType);
+    }
+    return handlers[packetType].handler;
+  } catch (err) {
+    console.error(`프로토 패킷 타입 에러`, err);
   }
-  return handlers[packetType].handler;
 };

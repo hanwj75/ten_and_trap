@@ -123,7 +123,7 @@ export const loginHandler = async (socket, payload) => {
       GlobalFailCode.values.NONE_FAILCODE,
     );
   } catch (err) {
-    console.error(err);
+    console.error(`로그인 에러`, err);
   }
 };
 

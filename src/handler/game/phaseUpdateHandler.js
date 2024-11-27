@@ -22,17 +22,14 @@ export const phaseUpdateHandler = async (room, nextState) => {
     } else if (phase === '1') {
       console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateUsersToRoom(room.id, `phase`, 3);
-    } else {
-      phase === '0';
-      return;
     }
 
     let nextPhaseAt = Date.now() + nextState;
     const pahseUpdatePayload = {
       phaseUpdateNotification: {
         phaseType: phase === '3' ? '1' : '3',
-        nextPhaseAt: nextPhaseAt,
-        CharacterPosition: CharacterPosition,
+        nextPhaseAt,
+        CharacterPosition,
       },
     };
     sendNotificationToUsers(users, pahseUpdatePayload, packetType.PHASE_UPDATE_NOTIFITION, 0);
@@ -47,29 +44,37 @@ export const phaseUpdateHandler = async (room, nextState) => {
  * @todo 게임 시작시 false로 변환하여 하나의 인터벌만 들어오도록 허용
  */
 export const button = async (socket) => {
-  const user = await getUserBySocket(socket);
-  const currentUserId = user.id;
+  try {
+    const user = await getUserBySocket(socket);
+    const currentUserId = user.id;
 
-  const roomId = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
-  const isPushed = await redis.getAllFieldsFromHash(`room:${roomId}`, `isPushed`);
+    const roomId = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
+    const isPushed = await redis.getAllFieldsFromHash(`room:${roomId}`, `isPushed`);
 
-  if (isPushed) {
-    console.log('button', roomId);
-    await startCustomInterval(socket, roomId);
-    await redis.setRoomByUserId(`room:${roomId}`, `isPushed`, false);
+    if (isPushed) {
+      console.log('button', roomId);
+      await startCustomInterval(socket, roomId);
+      await redis.setRoomByUserId(`room:${roomId}`, `isPushed`, false);
+    }
+  } catch (err) {
+    console.error(`스위치 에러`, err);
   }
 };
 export const startCustomInterval = async (socket, roomId) => {
-  const intervals = [5000, 5000];
-  let currentIndex = 0;
-  const runInterval = async () => {
-    console.log('작업 실행: ', currentIndex); // 원하는 작업 수행
-    const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
-    // 다음 인터벌 설정
-    currentIndex = (currentIndex + 1) % intervals.length;
-    const nextState = intervals[currentIndex];
-    phaseUpdateHandler(room, nextState);
-    setTimeout(runInterval, nextState);
-  };
-  setTimeout(runInterval, intervals[currentIndex]);
+  try {
+    const intervals = [5000, 5000];
+    let currentIndex = 0;
+    const runInterval = async () => {
+      console.log('작업 실행: ', currentIndex); // 원하는 작업 수행
+      const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
+      // 다음 인터벌 설정
+      currentIndex = (currentIndex + 1) % intervals.length;
+      const nextState = intervals[currentIndex];
+      phaseUpdateHandler(room, nextState);
+      setTimeout(runInterval, nextState);
+    };
+    setTimeout(runInterval, intervals[currentIndex]);
+  } catch (err) {
+    console.error(`인터벌 에러`, err);
+  }
 };
