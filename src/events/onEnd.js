@@ -7,7 +7,7 @@ import { GlobalFailCode } from '../init/loadProto.js';
 export const onEnd = (socket) => async () => {
   try {
     console.log('클라이언트 연결이 종료되었습니다.');
-
+    const failCode = GlobalFailCode.values;
     /**
      * @desc 클라이언트 종료시 방 나가기 OR 데이터 삭제
      * @author 한우종
@@ -15,13 +15,13 @@ export const onEnd = (socket) => async () => {
     const user = await getUserBySocket(socket);
     const currentUserId = user.id;
     //현재 나가려하는 방의 키값
-    const leaveRequestRoomId = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
+    const leaveRoomKey = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
     //나가는 유저의 정보
-    const getLeaveUserId = await redis.getRoomByUserId(`room:${leaveRequestRoomId}`, `users`);
+    const leaveUserInfo = await redis.getRoomByUserId(`room:${leaveRoomKey}`, `users`);
     //해당 방의 방장
-    const getOwnerId = await redis.getRoomByUserId(`room:${leaveRequestRoomId}`, `ownerId`);
+    const ownerId = await redis.getRoomByUserId(`room:${leaveRoomKey}`, `ownerId`);
 
-    const users = JSON.parse(getLeaveUserId);
+    const users = JSON.parse(leaveUserInfo);
 
     if (user) {
       await removeUser(socket);
@@ -34,36 +34,18 @@ export const onEnd = (socket) => async () => {
       const userIndex = users.findIndex((user) => user.id === currentUserId);
       if (userIndex !== -1) {
         const removeUser = users.splice(userIndex, 1)[0];
-        const roomOwnerId = removeUser.id === Number(getOwnerId);
+        const roomOwnerId = removeUser.id === Number(ownerId);
 
-        const leaveRoomNotificationPayload = {
-          leaveRoomNotification: {
-            userId: removeUser.id,
-          },
-        };
-        sendNotificationToUsers(
-          users,
-          leaveRoomNotificationPayload,
-          packetType.LEAVE_ROOM_NOTIFICATION,
-          0,
-        );
-        await redis.updateUsersToRoom(leaveRequestRoomId, 'users', users);
+        const leaveRoomNotificationPayload = { leaveRoomNotification: { userId: removeUser.id } };
+        sendNotificationToUsers(users, leaveRoomNotificationPayload, packetType.LEAVE_ROOM_NOTIFICATION, 0);
+
+        await redis.updateUsersToRoom(leaveRoomKey, 'users', users);
         if (roomOwnerId) {
-          const leaveRoomResponsePayload = {
-            leaveRoomResponse: {
-              success: true,
-              failCode: GlobalFailCode.values.NONE_FAILCODE,
-            },
-          };
-          sendNotificationToUsers(
-            users,
-            leaveRoomResponsePayload,
-            packetType.LEAVE_ROOM_RESPONSE,
-            0,
-          );
+          const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
+          sendNotificationToUsers(users, roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0);
 
           // Redis에서 방 데이터 삭제
-          await redis.delRedisByKey(`room:${leaveRequestRoomId}`);
+          await redis.delRedisByKey(`room:${leaveRoomKey}`);
         }
         await redis.delRedisByKey(`user:${currentUserId}`);
       }
