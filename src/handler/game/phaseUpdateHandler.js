@@ -80,7 +80,6 @@ export const startCustomInterval = async (socket, roomId) => {
       const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
       const users = room.users ? JSON.parse(room.users) : []; // 유저 목록 가져오기
       // 유저가 없으면 인터벌 중지
-      console.log('test: ', users, users.length);
       if (users.length === 0) {
         console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
         return; // 더 이상 진행하지 않음
