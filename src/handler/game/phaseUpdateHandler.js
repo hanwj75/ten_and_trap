@@ -18,10 +18,6 @@ export const phaseUpdateHandler = async (room, nextState) => {
 
     const users = await JSON.parse(room.users);
 
-    users.forEach((user) => {
-      console.log(user.character.handCardsCount);
-    });
-
     const isWinner = users.findIndex((user) => user.character.handCardsCount === 2);
 
     if (phase === '3') {
@@ -68,7 +64,7 @@ export const button = async (socket) => {
 };
 export const startCustomInterval = async (socket, roomId) => {
   try {
-    const intervals = [5000, 5000];
+    const intervals = [60000, 5000];
     let currentIndex = 0;
     const runInterval = async () => {
       const room = await redis.getAllFieldsFromHash(`room:${roomId}`);

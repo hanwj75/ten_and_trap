@@ -50,7 +50,9 @@ export const loginHandler = async (socket, payload) => {
       { type: 3, count: 1 },
       { type: 4, count: 1 },
     ];
-    const loginCharacter = new Character(1, 3, 7, 0, stateInfo, [], [], handCards, 1, 4);
+
+    // const loginCharacter = new Character(1, 3, 7, 0, stateInfo, [], [], handCards, 1, 4);
+    const loginCharacter = new Character(0, 0, 7, 0, stateInfo, [], [], handCards, 1, 4);
 
     // 유저 클래스 생성
     const loginUser = new User(checkExistId.id, socket, email, checkExistId.nickName, null, loginCharacter, { x: 0, y: 0 });

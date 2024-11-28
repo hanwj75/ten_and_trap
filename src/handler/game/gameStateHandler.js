@@ -7,6 +7,8 @@ import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
+import { setCharacterType } from '../../utils/setCharacterType.js';
+import { setRoleType } from '../../utils/setRoleType.js';
 import { button } from './phaseUpdateHandler.js';
 
 /**
@@ -54,6 +56,19 @@ export const gamePrepareHandler = async (socket, payload) => {
 
     //방 상태 업데이트
     if (currenRoomData.state === '0') {
+      const randomCharacters = setCharacterType(users.length);
+      const randomRoles = setRoleType(users.length);
+      console.log(randomCharacters);
+      console.log(randomRoles);
+
+      users.forEach((user, index) => {
+        user.character.characterType = randomCharacters[index];
+        user.character.roleType = randomRoles[index];
+      });
+
+      console.log(users);
+      await redis.updateUsersToRoom(currenUserRoomId, 'users', users);
+
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
       const reCurrenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
 
@@ -109,7 +124,7 @@ export const gameStartHandler = async (socket, payload) => {
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
     }
     const currentPhase = PhaseType.values.DAY;
-    const countTime = Date.now() + 5000;
+    const countTime = Date.now() + 60000;
     const newState = new GameState(currentPhase, countTime);
     //페이즈 업데이트 실행
     await button(socket);

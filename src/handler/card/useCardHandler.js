@@ -19,6 +19,9 @@ export const useCardHandler = async (socket, payload) => {
     const { cardType, targetUserId } = payload.useCardRequest;
     const failCode = GlobalFailCode.values;
 
+    console.log('cardType:', cardType);
+    console.log('targetUserId: ', targetUserId);
+
     // 카드 쓴 사람
     const user = await getUserBySocket(socket);
     const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
