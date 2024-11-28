@@ -71,7 +71,10 @@ export const loginHandler = async (socket, payload) => {
       stateInfo,
       [],
       [],
-      [{ type: 1, count: 2 }],
+      [
+        { type: 1, count: 1 },
+        { type: 2, count: 1 },
+      ],
       1,
       2,
     );
