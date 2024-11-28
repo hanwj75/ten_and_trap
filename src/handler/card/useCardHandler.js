@@ -4,6 +4,7 @@ import { redis } from '../../init/redis/redis.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { getUserBySocket, getUserById, modifyUserData } from '../../sessions/user.session.js';
 import { drawThreeCard } from './cardType/drawThreeCard.js';
+import { stealTwoCard } from './cardType/stealTwoCard.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 /**
  * @dest 카드 사용 요구
@@ -62,7 +63,8 @@ export const useCardHandler = async (socket, payload) => {
     // 상대방
     let opponent = 0;
     if (targetUserId != 0) {
-      opponent = await getUserById(Number(targetUserId));
+      opponent = await redis.getAllFieldsFromHash(`user:${targetUserId}`);
+      opponent.handCards = JSON.parse(opponent.handCards);
     }
 
     // 카드타입이 존재하는 카드인지
@@ -93,6 +95,9 @@ export const useCardHandler = async (socket, payload) => {
     // 카드별 함수 실행
     switch (cardType) {
       case 1:
+        stealTwoCard(userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
+        break;
+      case 2:
         drawThreeCard(userData);
         break;
       default:
@@ -105,6 +110,7 @@ export const useCardHandler = async (socket, payload) => {
     for (let i = 0; i < userData.handCards.length; i++) {
       if (userData.handCards[i].type === cardType) {
         userData.handCards[i].count -= 1;
+        userData.handCardsCount--;
         if (userData.handCards[i].count <= 0) {
           userData.handCards.splice(i, 1);
         }
@@ -120,7 +126,6 @@ export const useCardHandler = async (socket, payload) => {
     };
     await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 
-    userData.handCardsCount--;
     const updatedUserData = {
       ...userData,
       handCards: JSON.stringify(userData.handCards),

@@ -43,7 +43,9 @@ export const loginHandler = async (socket, payload) => {
     }
     const stateInfo = { state: 0, nextState: 0, nextStateAt: 0, stateTargetUserId: 0 };
     // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
+
     const loginCharacter = new Character(1, 3, 5, 0, stateInfo, [], [], [{ type: 1, count: 2 }], 1, 2);
+
 
     // 유저 클래스 생성
     const loginUser = new User(checkExistId.id, socket, email, checkExistId.nickName, null, loginCharacter, { x: 0, y: 0 });
