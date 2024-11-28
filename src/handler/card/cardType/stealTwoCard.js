@@ -6,14 +6,17 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
 
   const user = userData;
   const opponent = opponentData;
+  let opponentHand = opponentData.handCards;
+  let opponentCount = opponentData.handCardsCount;
 
   // 카드 2장 랜덤으로 훔침
   const count = 2;
   const newHandCards = [];
 
   // 만약 2장이 없다면 다 뺏고 종료
-  if (Number(opponent.handCardsCount) <= count) {
-    [...user.handCards, ...opponent.handCards].forEach((card) => {
+
+  if (Number(opponentCount) <= count) {
+    [...user.handCards, ...opponentHand].forEach((card) => {
       const existType = newHandCards.find((item) => item.type === card.type);
       if (existType) {
         existType.count += card.count;
@@ -22,44 +25,40 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
       }
     });
     user.handCards = newHandCards;
-    user.handCardsCount += opponent.handCardsCount;
-    opponent.handCardsCount = 0;
-    opponent.handCards = [];
+    user.handCardsCount += opponentCount;
+    opponentCount = 0;
+    opponentHand = [];
   } else {
     for (let i = 0; i < count; i++) {
-      const randomIndex = Math.floor(Math.random() * opponent.handCardsCount);
-      const existType = user.handCards.find((card) => card.type === opponent.handCards[randomIndex].type);
+      const randomIndex = Math.floor(Math.random() * opponentCount);
+      const existType = user.handCards.find((card) => card.type === opponentHand[randomIndex].type);
 
       if (existType) {
         existType.count++;
       } else {
-        user.handCards.push({ type: opponent.handCards[randomIndex].type, count: 1 });
+        user.handCards.push({ type: opponentHand[randomIndex].type, count: 1 });
       }
       user.handCardsCount++;
-      opponent.handCards[randomIndex].count--;
-      if (opponent.handCards[randomIndex].count <= 0) {
-        opponent.handCards.splice(randomIndex, 1);
+      opponentHand[randomIndex].count--;
+      if (opponentHand[randomIndex].count <= 0) {
+        opponentHand.splice(randomIndex, 1);
       }
-      opponent.handCardsCount--;
+      opponentCount--;
     }
   }
   // Session에 상대유저 정보 업데이트
   await modifyUserData(Number(opponent.id), {
-    character: { handCards: opponent.handCards, handCardsCount: opponent.handCardsCount },
+    character: { handCards: opponentHand, handCardsCount: opponentCount },
   });
 
   // redis에 상대 유저 정보 업데이트
   const updateRoomData = roomData.users.find((user) => user.id == opponent.id);
-  updateRoomData.character.handCards = opponent.handCards;
-  updateRoomData.character.handCardsCount = opponent.handCardsCount;
+  updateRoomData.character.handCards = opponentHand;
+  updateRoomData.character.handCardsCount = opponentCount;
   const updatedRoomData = { ...roomData, users: JSON.stringify(roomData.users) };
   await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 
-  const updatedOpponentData = {
-    ...opponent,
-    handCards: JSON.stringify(opponent.handCards),
-    handCardsCount: opponent.handCardsCount,
-  };
+  const updatedOpponentData = { ...opponent, handCards: JSON.stringify(opponentHand), handCardsCount: opponentCount };
   await redis.addRedisToHash(`user:${opponent.id}`, updatedOpponentData);
 
   return user;
