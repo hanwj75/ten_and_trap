@@ -6,6 +6,9 @@ import { getUserBySocket, getUserById, modifyUserData } from '../../sessions/use
 import { drawThreeCard } from './cardType/drawThreeCard.js';
 import { stealTwoCard } from './cardType/stealTwoCard.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
+import { throwAwayYourCard } from './cardType/throwAwayYourCard.js';
+import { throwAwayMyCard } from './cardType/throwAwayMyCard.js';
+
 /**
  * @dest 카드 사용 요구
  * @author 박건순
@@ -92,21 +95,7 @@ export const useCardHandler = async (socket, payload) => {
       console.error('손에 카드 없음');
     }
 
-    // 카드별 함수 실행
-    switch (cardType) {
-      case 1:
-        stealTwoCard(userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
-        break;
-      case 2:
-        drawThreeCard(userData);
-        break;
-      default:
-        console.log('default');
-        break;
-    }
-
-    // Todo 카드함수에 넣을 생각도 해보는중
-    // 유저 정보 업데이트
+    // 사용한 카드 삭제
     for (let i = 0; i < userData.handCards.length; i++) {
       if (userData.handCards[i].type === cardType) {
         userData.handCards[i].count -= 1;
@@ -117,6 +106,25 @@ export const useCardHandler = async (socket, payload) => {
         break;
       }
     }
+    // 카드별 함수 실행
+    switch (cardType) {
+      case 1:
+        stealTwoCard(userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
+        break;
+      case 2:
+        drawThreeCard(userData);
+        break;
+      case 3:
+        throwAwayMyCard(userData);
+        break;
+      case 4:
+        throwAwayYourCard(opponent, roomData);
+        break;
+      default:
+        console.log('default');
+        break;
+    }
+
     const updateRoomData = roomData.users.find((user) => user.id == userData.id);
     updateRoomData.character.handCards = userData.handCards;
     updateRoomData.character.handCardsCount = userData.handCardsCount;
@@ -160,12 +168,7 @@ export const useCardHandler = async (socket, payload) => {
       },
     };
 
-    sendNotificationToUsers(
-      roomData.users,
-      useCardNotificationPayload,
-      packetType.USE_CARD_NOTIFICATION,
-      0,
-    );
+    sendNotificationToUsers(roomData.users, useCardNotificationPayload, packetType.USE_CARD_NOTIFICATION, 0);
 
     const userUpdateNotificationPayload = {
       userUpdateNotification: {
@@ -173,12 +176,7 @@ export const useCardHandler = async (socket, payload) => {
       },
     };
 
-    sendNotificationToUsers(
-      roomData.users,
-      userUpdateNotificationPayload,
-      packetType.USER_UPDATE_NOTIFICATION,
-      0,
-    );
+    sendNotificationToUsers(roomData.users, userUpdateNotificationPayload, packetType.USER_UPDATE_NOTIFICATION, 0);
   } catch (err) {
     console.error('카드 사용 에러:', err);
   }
