@@ -35,8 +35,6 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
       } else {
         user.handCards.push({ type: opponent.handCards[randomIndex].type, count: 1 });
       }
-      console.log('test111:' + JSON.stringify(user.handCards));
-      console.log('test222:' + JSON.stringify(opponent.handCards));
       user.handCardsCount++;
       opponent.handCards[randomIndex].count--;
       if (opponent.handCards[randomIndex].count <= 0) {
