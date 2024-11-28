@@ -29,3 +29,13 @@ export const updateUserLogin = async (userId) => {
   const [rows] = await pools.USER_DB.query(SQL_QUERIES.UPDATE_USER_LOGIN, [userId]);
   return toCamelCase(rows[0]);
 };
+
+export const addGold = async (userId) => {
+  const gold = await pools.USER_DB.query(SQL_QUERIES.UPDATE_USER_GOLD, userId);
+  return toCamelCase(gold);
+};
+
+export const addRankPoint = async (userId) => {
+  const rankpoint = await pools.USER_DB.query(SQL_QUERIES.UPDATE_USER_RANKPOINT, userId);
+  return toCamelCase(rankpoint);
+};
