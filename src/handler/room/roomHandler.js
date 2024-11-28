@@ -79,9 +79,9 @@ export const getRoomListHandler = async (socket, payload) => {
     if (roomKeys.length > 0) {
       allRooms = await redis.getAllFieldsByValue(roomKeys, 'state', '0');
     }
-    const getRoomListPayload = { getRoomListResponse: { rooms: allRooms } };
+    const roomPayload = { getRoomListResponse: { rooms: allRooms } };
 
-    socket.write(createResponse(getRoomListPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
   } catch (err) {
     console.error(`방 리스트 에러`, err);
   }
@@ -120,6 +120,7 @@ export const joinRoomHandler = async (socket, payload) => {
 
     roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
 
+
     //이미 방에 존재하는 경우
     const userExists = roomData.users.some((existingUser) => existingUser.id === user.id);
     if (userExists) {
@@ -132,6 +133,7 @@ export const joinRoomHandler = async (socket, payload) => {
     const joinRoomNotificationPayload = { joinRoomNotification: { joinUser: newUserInfo } };
 
     sendNotificationToUsers(roomData.users, joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0);
+
     if (roomData.users.length >= roomData.maxUserNum) {
       console.error('최대 인원입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };

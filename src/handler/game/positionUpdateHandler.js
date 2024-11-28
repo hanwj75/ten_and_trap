@@ -1,9 +1,5 @@
 import { packetType } from '../../constants/header.js';
-import {
-  getUserBySocket,
-  modifyUserData,
-  findUsersByJoinRoom,
-} from '../../sessions/user.session.js';
+import { getUserBySocket, modifyUserData, findUsersByJoinRoom } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 
 /**
@@ -28,31 +24,14 @@ export const positionUpdateHandler = async (socket, payload) => {
 
     // console.log('1', users[0].characterPosition, '2', users[1].characterPosition);
     // 모든 사용자 위치 데이터 생성
-    const characterPositions = users.map((u) => ({
-      id: u.id,
-      x: u.characterPosition.x,
-      y: u.characterPosition.y,
-    }));
+    const userPositions = users.map((u) => ({ id: u.id, x: u.characterPosition.x, y: u.characterPosition.y }));
 
     // 현재 사용자의 위치 추가
-    const currentUserPosition = {
-      id: user.id,
-      x: positions.x,
-      y: positions.y,
-    };
+    const currentUserPosition = { id: user.id, x: positions.x, y: positions.y };
 
-    const positionUpdateNotificationPayload = {
-      positionUpdateNotification: {
-        characterPositions: [...characterPositions, currentUserPosition],
-      },
-    };
+    const notification = { positionUpdateNotification: { characterPositions: [...userPositions, currentUserPosition] } };
 
-    sendNotificationToUsers(
-      users,
-      positionUpdateNotificationPayload,
-      packetType.POSITION_UPDATE_NOTIFICATION,
-      0,
-    );
+    sendNotificationToUsers(users, notification, packetType.POSITION_UPDATE_NOTIFICATION, 0);
   } catch (err) {
     console.error(`위치 동기화 에러`, err);
   }
