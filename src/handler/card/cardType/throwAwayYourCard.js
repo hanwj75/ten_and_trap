@@ -14,27 +14,19 @@ export const throwAwayYourCard = async (opponentData, roomData) => {
   // TODO 나중에 따로 함수로 만들어서 리팩토링
   // Session에 상대유저 정보 업데이트
   await modifyUserData(Number(opponent.id), {
-    character: {
-      handCards: opponent.handCards,
-      handCardsCount: opponent.handCardsCount,
-    },
+    character: { handCards: opponent.handCards, handCardsCount: opponent.handCardsCount },
   });
 
   // redis에 상대 유저 정보 업데이트
   const updateRoomData = roomData.users.find((user) => user.id == opponent.id);
   updateRoomData.character.handCards = opponent.handCards;
   updateRoomData.character.handCardsCount = opponent.handCardsCount;
-  const updatedRoomData = {
-    ...roomData,
-    users: JSON.stringify(roomData.users),
-  };
+
+  const updatedRoomData = { ...roomData, users: JSON.stringify(roomData.users) };
   await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 
-  const updatedOpponentData = {
-    ...opponent,
-    handCards: JSON.stringify(opponent.handCards),
-    handCardsCount: opponent.handCardsCount,
-  };
+  const handCards = JSON.stringify(opponent.handCards);
+  const updatedOpponentData = { ...opponent, handCards, handCardsCount: opponent.handCardsCount };
   await redis.addRedisToHash(`user:${opponent.id}`, updatedOpponentData);
   return opponentData;
 };
