@@ -35,16 +35,10 @@ export const phaseUpdateHandler = async (room, nextState) => {
       console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateUsersToRoom(room.id, `phase`, 3);
     }
-
+    const phaseType = phase === '3' ? '1' : '3';
     let nextPhaseAt = Date.now() + nextState;
-    const pahseUpdatePayload = {
-      phaseUpdateNotification: {
-        phaseType: phase === '3' ? '1' : '3',
-        nextPhaseAt,
-        CharacterPosition,
-      },
-    };
-    sendNotificationToUsers(users, pahseUpdatePayload, packetType.PHASE_UPDATE_NOTIFITION, 0);
+    const notification = { phaseUpdateNotification: { phaseType, nextPhaseAt, CharacterPosition } };
+    sendNotificationToUsers(users, notification, packetType.PHASE_UPDATE_NOTIFITION, 0);
   } catch (err) {
     console.error(`페이즈 전환 에러`, err);
   }
