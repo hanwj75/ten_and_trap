@@ -120,7 +120,6 @@ export const joinRoomHandler = async (socket, payload) => {
 
     roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
 
-
     //이미 방에 존재하는 경우
     const userExists = roomData.users.some((existingUser) => existingUser.id === user.id);
     if (userExists) {
@@ -130,9 +129,9 @@ export const joinRoomHandler = async (socket, payload) => {
       return;
     }
     const newUserInfo = { id: user.id, nickname: user.nickName, character: user.character };
-    const joinRoomNotificationPayload = { joinRoomNotification: { joinUser: newUserInfo } };
+    const notification = { joinRoomNotification: { joinUser: newUserInfo } };
 
-    sendNotificationToUsers(roomData.users, joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0);
+    sendNotificationToUsers(roomData.users, notification, packetType.JOIN_ROOM_NOTIFICATION, 0);
 
     if (roomData.users.length >= roomData.maxUserNum) {
       console.error('최대 인원입니다.');
