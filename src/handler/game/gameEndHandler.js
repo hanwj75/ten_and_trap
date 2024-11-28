@@ -19,14 +19,9 @@ export const gameEndNotification = async (roomId) => {
       }
     });
 
-    const gameEndNotificationPaylode = {
-      gameEndNotification: {
-        winners,
-        winType: WinType.values.PSYCHOPATH_WIN,
-      },
-    };
+    const notification = { gameEndNotification: { winners, winType: WinType.values.PSYCHOPATH_WIN } };
 
-    sendNotificationToUsers(userData, gameEndNotificationPaylode, packetType.GAME_END_NOTIFICATION, 0);
+    sendNotificationToUsers(userData, notification, packetType.GAME_END_NOTIFICATION, 0);
 
     winners.forEach(async (user) => {
       await addGold(user);
