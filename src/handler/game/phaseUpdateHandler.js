@@ -11,7 +11,7 @@ import { getUserBySocket } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { gameEndNotification } from './gameEndHandler.js';
 
-export const phaseUpdateHandler = async (room, nextState) => {
+export const phaseUpdateHandler = async (socket, room, nextState) => {
   try {
     //phase 전환
     const phase = room.phase;
@@ -21,15 +21,15 @@ export const phaseUpdateHandler = async (room, nextState) => {
     users.forEach((user) => {
       console.log(user.character.handCardsCount);
     });
-
-    const isWinner = users.findIndex((user) => user.character.handCardsCount === 2);
+    //차후 10장으로 변경
+    const isWinner = users.findIndex((user) => user.character.handCardsCount > 5);
 
     if (phase === '3') {
       console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateUsersToRoom(room.id, `phase`, 1);
 
       if (isWinner !== -1) {
-        gameEndNotification(room.id);
+        gameEndNotification(socket, room.id);
       }
     } else if (phase === '1') {
       console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
@@ -53,6 +53,7 @@ export const button = async (socket) => {
   try {
     const user = await getUserBySocket(socket);
     const currentUserId = user.id;
+    console.log('button currentUserId test : ', currentUserId);
 
     const roomId = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
     const isPushed = await redis.getAllFieldsFromHash(`room:${roomId}`, `isPushed`);
@@ -82,7 +83,7 @@ export const startCustomInterval = async (socket, roomId) => {
       // 다음 인터벌 설정
       currentIndex = (currentIndex + 1) % intervals.length;
       const nextState = intervals[currentIndex];
-      phaseUpdateHandler(room, nextState);
+      phaseUpdateHandler(socket, room, nextState);
       setTimeout(runInterval, nextState);
     };
     setTimeout(runInterval, intervals[currentIndex]);
