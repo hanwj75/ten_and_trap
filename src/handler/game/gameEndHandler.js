@@ -1,9 +1,9 @@
 import { packetType } from '../../constants/header.js';
-import { updateData, userInit } from '../../constants/userInit.js';
+import { redisInit, sessionCharacterPosition, sessionInit, sessionJoinRoom } from '../../constants/userInit.js';
 import { addGold, addRankPoint } from '../../db/user/user.db.js';
 import { WinType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
-import { modifyUserData } from '../../sessions/user.session.js';
+import { getAllUser, modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 
 export const gameEndNotification = async (roomId) => {
@@ -33,10 +33,20 @@ export const gameEndNotification = async (roomId) => {
       return user.id;
     });
 
+    const aaa = await getAllUser();
+    // console.log('aaatest : ',aaa);
+    console.log('previous aaa[0] test : ', aaa[0]);
+
     endUsersId.forEach(async (userId) => {
-      await redis.addRedisToHash(`user:${userId}`, userInit); // redis 초기화
-      console.log(await modifyUserData(userId, updateData)); // userSession 초기화
+      await redis.addRedisToHash(`user:${userId}`, redisInit); // redis 초기화
+      await modifyUserData(Number(userId), { ...sessionInit, joinRoom: null }); // userSession 초기화
+      // await modifyUserData(Number(userId), { joinRoom: null });
+      // await modifyUserData(Number(userId), { sessionCharacterPosition });
     });
+
+    const bbb = await getAllUser();
+    console.log('after bbb[0] test : ', bbb[0]);
+    console.log('after bbb[0] test : ', bbb[0].character);
 
     await redis.delRedisByKey(`room:${roomId}`);
   } catch (error) {
