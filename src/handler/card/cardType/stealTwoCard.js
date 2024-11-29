@@ -1,14 +1,14 @@
 import { getGameAssets } from '../../../init/assets.js';
 import { redis } from '../../../init/redis/redis.js';
-import { modifyUserData } from '../../../sessions/user.session.js';
+import { modifyUserData, getUserById } from '../../../sessions/user.session.js';
 export const stealTwoCard = async (userData, opponentData, roomData) => {
   const { card } = getGameAssets();
 
   const user = userData;
   const opponent = opponentData;
   let opponentHand = opponentData.handCards;
+  opponentHand = JSON.parse(opponentHand);
   let opponentCount = opponentData.handCardsCount;
-
   // 카드 2장 랜덤으로 훔침
   const count = 2;
   const newHandCards = [];
@@ -47,8 +47,13 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
     }
   }
   // Session에 상대유저 정보 업데이트
+  const sessionData = await getUserById(Number(opponent.id));
   await modifyUserData(Number(opponent.id), {
-    character: { handCards: opponentHand, handCardsCount: opponentCount },
+    character: {
+      ...sessionData.character,
+      handCards: opponent.handCards,
+      handCardsCount: opponent.handCardsCount,
+    },
   });
 
   // redis에 상대 유저 정보 업데이트
