@@ -90,15 +90,6 @@ export const useCardHandler = async (socket, payload) => {
 
     console.log('test111:' + JSON.stringify(userData.handCards));
 
-    // Session에 유저 정보 업데이트
-    modifyUserData(user.id, {
-      character: {
-        ...user.character,
-        handCards: userData.handCards,
-        handCardsCount: userData.handCardsCount,
-      },
-    });
-
     // 나에게 카드 사용 알림
     const cardPayload = { useCardResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
     socket.write(createResponse(cardPayload, packetType.USE_CARD_RESPONSE, 0));

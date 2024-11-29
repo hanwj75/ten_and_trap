@@ -13,16 +13,6 @@ export const throwAwayYourCard = async (opponentData, roomData) => {
   opponent.handCardsCount--;
 
   // TODO 나중에 따로 함수로 만들어서 리팩토링
-  // Session에 상대유저 정보 업데이트
-  const sessionData = await getUserById(Number(opponent.id));
-  await modifyUserData(Number(opponent.id), {
-    character: {
-      ...sessionData.character,
-      handCards: opponent.handCards,
-      handCardsCount: opponent.handCardsCount,
-    },
-  });
-
   // redis에 상대 유저 정보 업데이트
   const updateRoomData = roomData.users.find((user) => user.id == opponent.id);
   updateRoomData.character.handCards = opponent.handCards;
