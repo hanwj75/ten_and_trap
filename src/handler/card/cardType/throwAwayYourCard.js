@@ -4,6 +4,7 @@ import { modifyUserData } from '../../../sessions/user.session.js';
 export const throwAwayYourCard = async (opponentData, roomData) => {
   const opponent = opponentData;
 
+  opponent.handCards = JSON.parse(opponent.handCards);
   const randomIndex = Math.floor(Math.random() * opponent.handCardsCount);
   opponent.handCards[randomIndex].count--;
   if (opponent.handCards[randomIndex].count <= 0) {
@@ -13,8 +14,13 @@ export const throwAwayYourCard = async (opponentData, roomData) => {
 
   // TODO 나중에 따로 함수로 만들어서 리팩토링
   // Session에 상대유저 정보 업데이트
+  const sessionData = await getUserById(Number(opponent.id));
   await modifyUserData(Number(opponent.id), {
-    character: { handCards: opponent.handCards, handCardsCount: opponent.handCardsCount },
+    character: {
+      ...sessionData.character,
+      handCards: opponent.handCards,
+      handCardsCount: opponent.handCardsCount,
+    },
   });
 
   // redis에 상대 유저 정보 업데이트
