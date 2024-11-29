@@ -29,7 +29,7 @@ export const useCardHandler = async (socket, payload) => {
     let opponent = 0;
     if (targetUserId != 0) {
       opponent = await redis.getAllFieldsFromHash(`user:${targetUserId}`);
-      opponent.handCards = JSON.parse(opponent.handCards);
+      //opponent.handCards = JSON.parse(opponent.handCards);
     }
 
     // 카드타입이 존재하는 카드인지
@@ -89,8 +89,15 @@ export const useCardHandler = async (socket, payload) => {
     await redis.addRedisToHash(`user:${user.id}`, updatedUserData);
 
     console.log('test111:' + JSON.stringify(userData.handCards));
+
     // Session에 유저 정보 업데이트
-    modifyUserData(user.id, { character: { handCards: userData.handCards, handCardsCount: userData.handCardsCount } });
+    modifyUserData(user.id, {
+      character: {
+        ...user.character,
+        handCards: userData.handCards,
+        handCardsCount: userData.handCardsCount,
+      },
+    });
 
     // 나에게 카드 사용 알림
     const cardPayload = { useCardResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
