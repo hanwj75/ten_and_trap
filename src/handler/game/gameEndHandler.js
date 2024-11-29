@@ -33,3 +33,25 @@ export const gameEndNotification = async (roomId) => {
     console.error(error);
   }
 };
+
+export const gameOnEndNotification = async (roomId) => {
+  try {
+    const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
+
+    const users = await JSON.parse(room.users);
+
+    // 승자 배열을 빈 배열로 유지
+    const winners = [];
+
+    // 게임 종료 알림을 빈 승자 배열과 함께 전송
+    const notification = { gameEndNotification: { winners, winType: WinType.values.NONE_ROLE } };
+
+    // 모든 유저에게 게임 종료 알림 전송
+    sendNotificationToUsers(users, notification, packetType.GAME_END_NOTIFICATION, 0);
+
+    // Redis에서 방 데이터 삭제
+    await redis.delRedisByKey(`room:${roomId}`);
+  } catch (error) {
+    console.error(error);
+  }
+};
