@@ -3,6 +3,7 @@ import { redis } from '../init/redis/redis.js';
 import { sendNotificationToUsers } from '../utils/notifications/notification.js';
 import { packetType } from '../constants/header.js';
 import { GlobalFailCode } from '../init/loadProto.js';
+import { gameOnEndNotification } from '../handler/game/gameEndHandler.js';
 
 export const onEnd = (socket) => async () => {
   try {
@@ -36,11 +37,12 @@ export const onEnd = (socket) => async () => {
         const removeUser = users.splice(userIndex, 1)[0];
         const roomOwnerId = removeUser.id === Number(ownerId);
 
-        const leaveRoomNotificationPayload = { leaveRoomNotification: { userId: removeUser.id } };
-        sendNotificationToUsers(users, leaveRoomNotificationPayload, packetType.LEAVE_ROOM_NOTIFICATION, 0);
+        const notification = { leaveRoomNotification: { userId: removeUser.id } };
+        sendNotificationToUsers(users, notification, packetType.LEAVE_ROOM_NOTIFICATION, 0);
 
         await redis.updateUsersToRoom(leaveRoomKey, 'users', users);
         if (roomOwnerId) {
+          await gameOnEndNotification(leaveRoomKey);
           const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
           sendNotificationToUsers(users, roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0);
 
