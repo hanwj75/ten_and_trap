@@ -423,3 +423,8 @@ enum RoomStateType {
     INGAME = 2;
 }
 
+enum ReactionType {
+    NONE_REACTION = 0;
+    NOT_USE_CARD = 1;
+}
+

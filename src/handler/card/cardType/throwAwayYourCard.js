@@ -1,5 +1,5 @@
 import { redis } from '../../../init/redis/redis.js';
-import { modifyUserData } from '../../../sessions/user.session.js';
+import { modifyUserData, getUserById } from '../../../sessions/user.session.js';
 
 export const throwAwayYourCard = async (opponentData, roomData) => {
   const opponent = opponentData;
