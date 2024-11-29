@@ -139,6 +139,10 @@ export const redis = {
   allDateDel: async () => {
     await redisClient.flushall();
   },
+
+  setPrepareUsers: async (key, field, value) => {
+    await redisClient.hset(key, field, value);
+  },
 };
 
 // 순위 1~7등

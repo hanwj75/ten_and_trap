@@ -61,12 +61,13 @@ export const gamePrepareHandler = async (socket, payload) => {
       console.log(randomCharacters);
       console.log(randomRoles);
 
-      users.forEach((user, index) => {
+      users.forEach(async (user, index) => {
         user.character.characterType = randomCharacters[index];
         user.character.roleType = randomRoles[index];
+        await redis.setPrepareUsers(`user:${user.id}`, 'characterType', randomCharacters[index]);
+        await redis.setPrepareUsers(`user:${user.id}`, 'roleType', randomRoles[index]);
       });
 
-      console.log(users);
       await redis.updateUsersToRoom(currenUserRoomId, 'users', users);
 
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
@@ -124,7 +125,7 @@ export const gameStartHandler = async (socket, payload) => {
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
     }
     const currentPhase = PhaseType.values.DAY;
-    const countTime = Date.now() + 60000;
+    const countTime = Date.now() + 10000;
     const newState = new GameState(currentPhase, countTime);
     //페이즈 업데이트 실행
     await button(socket);

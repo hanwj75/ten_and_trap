@@ -10,7 +10,7 @@ export const userInit = {
   stateInfo: JSON.stringify({ state: 0, nextStage: 0, nextStageAt: 0, stateTargetUserId: 0 }),
 };
 
-export const updataData = {
+export const updateData = {
   joinRoom: null,
   characterPosition: { x: 0, y: 0 },
   character: {

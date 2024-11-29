@@ -64,7 +64,7 @@ export const button = async (socket) => {
 };
 export const startCustomInterval = async (socket, roomId) => {
   try {
-    const intervals = [60000, 5000];
+    const intervals = [10000, 5000];
     let currentIndex = 0;
     const runInterval = async () => {
       const room = await redis.getAllFieldsFromHash(`room:${roomId}`);

@@ -1,9 +1,9 @@
 import { packetType } from '../../constants/header.js';
-import { updataData, userInit } from '../../constants/userInit.js';
+import { updateData, userInit } from '../../constants/userInit.js';
 import { addGold, addRankPoint } from '../../db/user/user.db.js';
 import { WinType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
-import { getAllUser, getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
+import { modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 
 export const gameEndNotification = async (roomId) => {
@@ -35,7 +35,7 @@ export const gameEndNotification = async (roomId) => {
 
     endUsersId.forEach(async (userId) => {
       await redis.addRedisToHash(`user:${userId}`, userInit); // redis 초기화
-      // await modifyUserData(userId, updataData); // userSession 초기화
+      console.log(await modifyUserData(userId, updateData)); // userSession 초기화
     });
 
     await redis.delRedisByKey(`room:${roomId}`);
