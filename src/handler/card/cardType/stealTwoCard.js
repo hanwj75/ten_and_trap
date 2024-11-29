@@ -7,6 +7,7 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
   const user = userData;
   const opponent = opponentData;
   let opponentHand = opponentData.handCards;
+  opponentHand = JSON.parse(opponentHand);
   let opponentCount = opponentData.handCardsCount;
   // 카드 2장 랜덤으로 훔침
   const count = 2;
