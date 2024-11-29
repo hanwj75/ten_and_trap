@@ -1,5 +1,5 @@
 import { packetType } from '../../constants/header.js';
-import { redisInit, sessionInit } from '../../constants/userInit.js';
+import { redisInit } from '../../init/initData.js';
 import { addGold, addRankPoint } from '../../db/user/user.db.js';
 import { WinType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
