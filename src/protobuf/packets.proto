@@ -177,6 +177,12 @@ message S2CUseCardNotification {
     int64 targetUserId = 3; // 타겟 없으면 0
 }
 
+message S2CCardEffectNotification {
+    CardType cardType = 1;
+    int64 userId = 2;
+    bool success = 3;
+}
+
 message S2CUserUpdateNotification {
     repeated UserData user = 1;
 }
@@ -185,6 +191,16 @@ message S2CPhaseUpdateNotification {
     PhaseType phaseType = 1; // DAY 1, EVENING 2, END 3
     int64 nextPhaseAt = 2; // 다음 페이즈 시작 시점(밀리초 타임스탬프)
     repeated CharacterPositionData characterPositions = 3; // 변경된 캐릭터 위치
+}
+
+
+message C2SReactionRequest {
+    ReactionType reactionType = 1; // NOT_USE_CARD = 1
+}
+
+message S2CReactionResponse {
+    bool success = 1;
+    GlobalFailCode failCode = 2;
 }
 
 message S2CGameWinNotification {
@@ -282,11 +298,20 @@ S2CUseCardResponse useCardResponse = 26; // 성공 여부만 반환하고 대상
 
 S2CUseCardNotification useCardNotification = 27;
 
+S2CCardEffectNotification cardEffectNotification = 29;
+
 // 유저 상태 동기화
 S2CUserUpdateNotification userUpdateNotification = 33;
 
 S2CPhaseUpdateNotification phaseUpdateNotification = 34;
 
+// 리액션
+C2SReactionRequest reactionRequest = 35;
+
+S2CReactionResponse reactionResponse = 36;
+
+
+//게임 종료
 S2CGameWinNotification gameWinNotification = 46;
 
 S2CGameEndNotification gameEndNotification =39;
