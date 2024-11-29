@@ -46,15 +46,6 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
       opponentCount--;
     }
   }
-  // Session에 상대유저 정보 업데이트
-  const sessionData = await getUserById(Number(opponent.id));
-  await modifyUserData(Number(opponent.id), {
-    character: {
-      ...sessionData.character,
-      handCards: opponent.handCards,
-      handCardsCount: opponent.handCardsCount,
-    },
-  });
 
   // redis에 상대 유저 정보 업데이트
   const updateRoomData = roomData.users.find((user) => user.id == opponent.id);

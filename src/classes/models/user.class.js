@@ -1,11 +1,10 @@
 class User {
-  constructor(id, socket, userId, nickName, joinRoom, character, characterPosition) {
+  constructor(id, socket, userId, joinRoom, nickName, characterPosition) {
     this.id = id;
     this.socket = socket;
     this.userId = userId;
-    this.nickName = nickName;
     this.joinRoom = joinRoom;
-    this.character = character;
+    this.nickName = nickName;
     this.characterPosition = characterPosition;
   }
 }
