@@ -6,6 +6,9 @@ import { packetType } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { characterInitData } from '../../init/initData.js';
+import { handleError } from '../../utils/error/errorHandler.js';
+import { ErrorCodes } from '../../utils/error/errorCodes.js';
+import CustomError from '../../utils/error/customError.js';
 
 /**
  * @desc 방 만들기
@@ -22,20 +25,27 @@ export const createRoomHandler = async (socket, payload) => {
 
     if (!user) {
       console.error(`존재하지 않는 유저입니다.`);
-      return;
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
 
     const userInfo = { id: user.id, nickname: user.nickName, character: characterInitData };
 
-    const roomByUserId = await redis.getRoomByUserId(`room:${roomId}`, `ownerId`);
-    if (roomByUserId) {
-      console.error(`이미 방을 소유하고있음`);
+    // 모든 방의 키를 가져옴
+    const roomKeys = await redis.getRedisToKeys(`room:*`);
+    const ownerId = await redis.getRedisToHash(`user:${user.id}`, `id`);
 
-      const roomPayload = { createRoomResponse: { success: false, room: null, failCode: failCode.CREATE_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.CREATE_ROOM_RESPONSE, 0));
-      return;
+    // 현재 사용자가 이미 방을 소유하고 있는지 확인
+    for (const roomKey of roomKeys) {
+      const roomOwnerId = await redis.getRedisToHash(roomKey, `ownerId`);
+      if (roomOwnerId === ownerId) {
+        console.error(`이미 방을 소유하고있음`);
+
+        const roomPayload = { createRoomResponse: { success: false, room: null, failCode: failCode.CREATE_ROOM_FAILED } };
+        socket.write(createResponse(roomPayload, packetType.CREATE_ROOM_RESPONSE, 0));
+
+        throw new CustomError(ErrorCodes.CREATE_ROOM_FAILED, `이미 방을 소유하고 있습니다.`);
+      }
     }
-
     const newRoom = new Room(roomId, user.id, name, maxUserNum, 0, [userInfo]);
     roomId++;
 
@@ -64,6 +74,7 @@ export const createRoomHandler = async (socket, payload) => {
     socket.write(createResponse(roomPayload, packetType.CREATE_ROOM_RESPONSE, 0));
   } catch (err) {
     console.error(`방 생성 에러`, err);
+    handleError(socket, err);
   }
 };
 
@@ -75,16 +86,16 @@ export const createRoomHandler = async (socket, payload) => {
 export const getRoomListHandler = async (socket, payload) => {
   try {
     const failCode = GlobalFailCode.values;
-    const roomKeys = await redis.getRoomKeys('room:*'); // 모든 방 키를 가져옴
+    const roomKeys = await redis.getRedisToKeys('room:*'); // 모든 방 키를 가져옴
     let allRooms = [];
     if (roomKeys.length > 0) {
       allRooms = await redis.getAllFieldsByValue(roomKeys, 'state', '0');
     }
     const roomPayload = { getRoomListResponse: { rooms: allRooms } };
-
     socket.write(createResponse(roomPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
   } catch (err) {
     console.error(`방 리스트 에러`, err);
+    handleError(socket, err);
   }
 };
 
@@ -98,8 +109,8 @@ export const joinRoomHandler = async (socket, payload) => {
     const failCode = GlobalFailCode.values;
     const { roomId } = payload.joinRoomRequest;
 
-    const roomKeys = await redis.getRoomKeys('room:*');
-    const roomKey = await redis.findRoomKeyToField(roomKeys, 'id', roomId);
+    const roomKeys = await redis.getRedisToKeys('room:*');
+    const roomKey = await redis.findRedisKeyToField(roomKeys, 'id', roomId);
     const roomData = await redis.getAllFieldsFromHash(roomKey);
     const user = await getUserBySocket(socket);
 
@@ -108,7 +119,8 @@ export const joinRoomHandler = async (socket, payload) => {
       console.error(`존재하지 않는 방입니다.`);
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
-      return;
+
+      throw new CustomError(ErrorCodes.JOIN_ROOM_FAILED, `존재하지 않는 방입니다.`);
     }
 
     //게임이 시작했거나 방 인원이 최대인 경우
@@ -116,7 +128,8 @@ export const joinRoomHandler = async (socket, payload) => {
       console.error('게임이 시작한 방입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
-      return;
+
+      throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `게임이 시작한 방입니다.`);
     }
 
     roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
@@ -127,7 +140,8 @@ export const joinRoomHandler = async (socket, payload) => {
       console.error('이미 방에 참여한 유저입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
-      return;
+
+      throw new CustomError(ErrorCodes.JOIN_ROOM_FAILED, `이미 방에 참여한 유저입니다.`);
     }
     const newUserInfo = { id: user.id, nickname: user.nickName, character: characterInitData };
     const notification = { joinRoomNotification: { joinUser: newUserInfo } };
@@ -138,7 +152,8 @@ export const joinRoomHandler = async (socket, payload) => {
       console.error('최대 인원입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
-      return;
+
+      throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `최대 인원입니다.`);
     }
     // 유저를 방의 유저 목록에 추가
     roomData.users.push(newUserInfo);
@@ -160,6 +175,7 @@ export const joinRoomHandler = async (socket, payload) => {
     socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
   } catch (err) {
     console.error(`방 입장 에러`, err);
+    handleError(socket, err);
   }
 };
 
@@ -175,20 +191,19 @@ export const joinRandomRoomHandler = async (socket, payload) => {
     const user = await getUserBySocket(socket);
     if (!user) {
       console.error(`유효하지 않은 사용자`);
-      return;
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `유효하지 않은 사용자`);
     }
 
     //현재 방 목록 가져오기
-    const roomKeys = await redis.getRoomKeys('room:*'); // 모든 방 키를 가져옴
+    const roomKeys = await redis.getRedisToKeys('room:*'); // 모든 방 키를 가져옴
 
     //방 목록이 없을경우
     if (roomKeys.length > 0) {
-      console.log('방 키들:', roomKeys);
     } else {
       console.log('해당 방이 존재하지 않습니다.');
       const roomPayload = { joinRandomRoomResponse: { success: false, room: null, failCode: failCode.ROOM_NOT_FOUND } };
       socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
-      return;
+      throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `해당 방이 존재하지 않습니다.`);
     }
 
     let allRooms = await redis.getAllFieldsByValue(roomKeys, 'state', '0');
@@ -202,7 +217,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       console.log('해당되는 방이 존재하지 않습니다.');
       const roomPayload = { joinRandomRoomResponse: { success: false, room: null, failCode: failCode.ROOM_NOT_FOUND } };
       socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
-      return;
+      throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `해당되는 방이 존재하지 않습니다.`);
     }
 
     roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
@@ -213,7 +228,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       console.error('최대 인원입니다.');
       const roomPayload = { joinRandomRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
-      return;
+      throw new CustomError(ErrorCodes.JOIN_ROOM_FAILED, `최대 인원입니다.`);
     }
     //방 상태 변경 알림
     const notification = { joinRoomNotification: { joinUser: newUserInfo } };
@@ -239,6 +254,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
     socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
   } catch (err) {
     console.error(`랜덤매칭 에러`, err);
+    handleError(socket, err);
   }
 };
 
@@ -253,29 +269,31 @@ export const leaveRoomHandler = async (socket, payload) => {
     const user = await getUserBySocket(socket);
     const currentUserId = user.id;
     //현재 나가려하는 방의 키값
-    const leaveRoomKey = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
+    const leaveRoomKey = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
     //나가는 유저의 정보
-    const leaveUserInfo = await redis.getRoomByUserId(`room:${leaveRoomKey}`, `users`);
+    const leaveUserInfo = await redis.getRedisToHash(`room:${leaveRoomKey}`, `users`);
     //해당 방의 방장
-    const ownerId = await redis.getRoomByUserId(`room:${leaveRoomKey}`, `ownerId`);
+    const ownerId = await redis.getRedisToHash(`room:${leaveRoomKey}`, `ownerId`);
 
     if (!user) {
       console.error(`존재하지 않는 유저입니다.`);
-      return;
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR);
     }
 
     if (!leaveRoomKey) {
       console.error(`사용자가 참여하고 있는 방이 없습니다: user:${user.id}`);
       const roomPayload = { leaveRoomResponse: { success: false, failCode: failCode.LEAVE_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0));
-      return;
+
+      throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `사용자가 참여하고 있는 방이 없습니다`);
     }
 
     if (!leaveUserInfo) {
       console.error(`사용자가 참여하고 있는 방이 없습니다: user:${user.id}`);
       const roomPayload = { leaveRoomResponse: { success: false, failCode: failCode.LEAVE_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0));
-      return;
+
+      throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `사용자가 참여하고 있는 방이 없습니다.`);
     }
     //users 필드값
     const users = JSON.parse(leaveUserInfo);
@@ -289,8 +307,7 @@ export const leaveRoomHandler = async (socket, payload) => {
       sendNotificationToUsers(users, notification, packetType.LEAVE_ROOM_NOTIFICATION, 0);
 
       const roomOwnerId = removeUser.id === Number(ownerId);
-
-      await redis.updateUsersToRoom(leaveRoomKey, 'users', users);
+      await redis.updateRedisToHash(leaveRoomKey, 'users', users);
 
       // Session에 유저 joinRoom정보 업데이트
       modifyUserData(user.id, { joinRoom: null });
@@ -302,7 +319,7 @@ export const leaveRoomHandler = async (socket, payload) => {
 
         // 모든 사용자 상태 업데이트
         users.forEach(async (user) => {
-          await redis.setRoomByUserId(`user:${user.id}`, `joinRoom`, null);
+          await redis.setRedisToHash(`user:${user.id}`, `joinRoom`, null);
         });
 
         // Redis에서 방 데이터 삭제
@@ -313,5 +330,6 @@ export const leaveRoomHandler = async (socket, payload) => {
     socket.write(createResponse(roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0));
   } catch (err) {
     console.error(`방 나가기 에러`, err);
+    handleError(socket, err);
   }
 };
