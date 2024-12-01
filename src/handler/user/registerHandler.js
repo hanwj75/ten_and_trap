@@ -23,8 +23,8 @@ export const registerHandler = async (socket, payload) => {
 
     if (checkExistId) {
       const message = '이미 존재하는 ID 입니다.';
-      const registerPayload = { registerResponse: { success: false, message, failCode: failCode.INVALID_REQUEST } };
-      socket.write(createResponse(registerPayload, packetType.REGISTER_RESPONSE, 0));
+      const registerPayload = { registerResponse: { success: false, message, failCode: failCode.REGISTER_FAILED } };
+      socket.write(createResponse(registerPayload, packetType.REGISTER_FAILED, 0));
 
       throw new CustomError(ErrorCodes.INVALID_REQUEST, '이미 존재하는 ID');
     }
