@@ -71,6 +71,7 @@ export const gamePrepareHandler = async (socket, payload) => {
         user.character.roleType = 1;
         user.character.handCards = handCards;
         user.character.handCardsCount = handCards.length;
+
         const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
         const userHandCards = JSON.stringify(handCards);
         const updatedUserData = {
@@ -97,7 +98,6 @@ export const gamePrepareHandler = async (socket, payload) => {
       socket.write(createResponse(gamePayload, packetType.GAME_PREPARE_RESPONSE, 0));
     }
   } catch (err) {
-    console.error(`게임준비 에러`, err);
     handleError(socket, err);
   }
 };
