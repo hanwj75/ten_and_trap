@@ -1,11 +1,14 @@
+import { PACKET_TYPE } from '../../../constants/header.js';
+import { GlobalFailCode } from '../../../init/loadProto.js';
 import CustomError from '../../../utils/error/customError.js';
 import { ErrorCodes } from '../../../utils/error/errorCodes.js';
 import { handleError } from '../../../utils/error/errorHandler.js';
+import { createResponse } from '../../../utils/response/createResponse.js';
 
-export const throwAwayMyCard = async (userData) => {
+export const throwAwayMyCard = async (socket, userData) => {
   try {
     const user = userData;
-
+    const failCode = GlobalFailCode.values;
     //handCards 정의되어 있는지 확인
     if (!user.handCards || !Array.isArray(user.handCards)) {
       throw new CustomError(ErrorCodes.INVALID_REQUEST, `유효하지 않은 카드 데이터`);
@@ -15,6 +18,9 @@ export const throwAwayMyCard = async (userData) => {
 
     // 카드가 없을 경우 처리
     if (user.handCardsCount === 0) {
+      const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
+      socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
+
       throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `버릴 카드가 없습니다.`);
     }
 
@@ -30,6 +36,9 @@ export const throwAwayMyCard = async (userData) => {
     if (userHandCard.count === 0) {
       user.handCards.splice(randomIndex, 1);
     } else {
+      const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
+      socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
+
       throw new CustomError(ErrorCodes.CHARACTER_STATE_ERROR, `카드 개수가 0 보다 작습니다.`);
     }
 

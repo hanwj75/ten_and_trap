@@ -1,5 +1,5 @@
 import { getGameAssets } from '../../../init/assets.js';
-export const drawThreeCard = async (userData) => {
+export const drawThreeCard = async (socket, userData) => {
   try {
     const { card } = getGameAssets();
     console.log(card.data[0].id);

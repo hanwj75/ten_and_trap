@@ -2,7 +2,7 @@ import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode, CardType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { getUserBySocket, getUserById, modifyUserData } from '../../sessions/user.session.js';
+import { getUserBySocket } from '../../sessions/user.session.js';
 import { drawThreeCard } from './cardType/drawThreeCard.js';
 import { stealTwoCard } from './cardType/stealTwoCard.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
@@ -38,6 +38,9 @@ export const useCardHandler = async (socket, payload) => {
     if (targetUserId != 0) {
       opponent = await redis.getAllFieldsFromHash(`user:${targetUserId}`);
       if (!opponent) {
+        const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
+        socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
+
         throw new CustomError(ErrorCodes.CHARACTER_NOT_FOUND, `존재하지 않는 상대입니다.`);
       }
     }
@@ -45,9 +48,6 @@ export const useCardHandler = async (socket, payload) => {
     // 카드타입이 존재하는 카드인지
     let cardTypeKey = Object.keys(CardType.values).find((key) => CardType.values[key] === cardType);
     if (!cardTypeKey) {
-      const cardPayload = { useCardResponse: { success: false, failCode: failCode.INVALID_REQUEST } };
-      socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
-
       throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `존재하지 않는 카드`);
     }
     // 손에 카드 있는지 검증
@@ -73,18 +73,21 @@ export const useCardHandler = async (socket, payload) => {
     // 카드별 함수 실행
     switch (cardType) {
       case 1:
-        stealTwoCard(userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
+        stealTwoCard(socket, userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
         break;
       case 2:
-        drawThreeCard(userData);
+        drawThreeCard(socket, userData);
         break;
       case 3:
-        throwAwayMyCard(userData);
+        throwAwayMyCard(socket, userData);
         break;
       case 4:
-        throwAwayYourCard(opponent, roomData);
+        throwAwayYourCard(socket, opponent, roomData);
         break;
       default:
+        const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
+        socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
+
         throw new CustomError(ErrorCodes.INVALID_REQUEST, `잘못된 카드 타입입니다.`);
     }
 
