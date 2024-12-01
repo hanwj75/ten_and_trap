@@ -4,6 +4,9 @@ import JoiUtils from '../../utils/joi.util.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
+import CustomError from '../../utils/error/customError.js';
+import { ErrorCodes } from '../../utils/error/errorCodes.js';
+import { handleError } from '../../utils/error/errorHandler.js';
 
 /**
  *
@@ -20,10 +23,10 @@ export const registerHandler = async (socket, payload) => {
 
     if (checkExistId) {
       const message = '이미 존재하는 ID 입니다.';
-      const registerPayload = { registerResponse: { success: false, message, failCode: failCode.INVALID_REQUEST } };
-      socket.write(createResponse(registerPayload, packetType.REGISTER_RESPONSE, 0));
+      const registerPayload = { registerResponse: { success: false, message, failCode: failCode.REGISTER_FAILED } };
+      socket.write(createResponse(registerPayload, packetType.REGISTER_FAILED, 0));
 
-      throw Error('이미 존재하는 ID');
+      throw new CustomError(ErrorCodes.INVALID_REQUEST, '이미 존재하는 ID');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -33,6 +36,6 @@ export const registerHandler = async (socket, payload) => {
 
     socket.write(createResponse(registerPayload, packetType.REGISTER_RESPONSE, 0));
   } catch (err) {
-    console.error(`회원가입 에러`, err);
+    handleError(socket, err);
   }
 };

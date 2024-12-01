@@ -11,6 +11,9 @@ import { GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import Character from '../../classes/models/character.class.js';
 import { characterInitData } from '../../init/initData.js';
+import CustomError from '../../utils/error/customError.js';
+import { ErrorCodes } from '../../utils/error/errorCodes.js';
+import { handleError } from '../../utils/error/errorHandler.js';
 /**
  *
  * @desc 로그인
@@ -20,27 +23,29 @@ import { characterInitData } from '../../init/initData.js';
 export const loginHandler = async (socket, payload) => {
   try {
     const failCode = GlobalFailCode.values;
-    console.log(`login:${payload.loginRequest}`);
     const { email, password } = await JoiUtils.validateSignIn(payload.loginRequest);
 
     // 아이디 존재 검증
     const checkExistId = await findUserById(email);
 
     if (!checkExistId) {
-      return makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', failCode.AUTHENTICATION_FAILED);
+      makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', failCode.AUTHENTICATION_FAILED);
+      throw new CustomError(ErrorCodes.AUTHENTICATION_FAILED, `아이디 또는 비밀번호가 잘못되었습니다.`);
     }
 
     // 비밀번호 존재 검증
     const checkPassword = await bcrypt.compare(password, checkExistId.password);
     if (!checkPassword) {
-      return makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', failCode.AUTHENTICATION_FAILED);
+      makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', failCode.AUTHENTICATION_FAILED);
+      throw new CustomError(ErrorCodes.AUTHENTICATION_FAILED, `아이디 또는 비밀번호가 잘못되었습니다.`);
     }
 
     // 중복 로그인 방지
     const isExistUser = await findUser(checkExistId.nickName);
 
     if (isExistUser) {
-      return makeResponse(socket, false, '이미 접속중인 아이디', '', '', failCode.AUTHENTICATION_FAILED);
+      makeResponse(socket, false, '이미 접속중인 아이디', '', '', failCode.AUTHENTICATION_FAILED);
+      throw new CustomError(ErrorCodes.AUTHENTICATION_FAILED, `이미 접속중인 아이디`);
     }
 
     // 유저 클래스 생성
@@ -77,7 +82,7 @@ export const loginHandler = async (socket, payload) => {
     await redis.addRedisToHash(`user:${checkExistId.id}`, userInfoToRedis);
     return makeResponse(socket, true, 'Login Success', totalToken, loginPayload, failCode.NONE_FAILCODE);
   } catch (err) {
-    console.error(`로그인 에러`, err);
+    handleError(socket, err);
   }
 };
 
