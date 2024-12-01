@@ -1,7 +1,7 @@
 import { getUserBySocket, removeUser } from '../sessions/user.session.js';
 import { redis } from '../init/redis/redis.js';
 import { sendNotificationToUsers } from '../utils/notifications/notification.js';
-import { packetType } from '../constants/header.js';
+import { PACKET_TYPE } from '../constants/header.js';
 import { GlobalFailCode } from '../init/loadProto.js';
 import { gameOnEndNotification } from '../handler/game/gameEndHandler.js';
 import CustomError from '../utils/error/customError.js';
@@ -41,14 +41,14 @@ export const onEnd = (socket) => async () => {
         const roomOwnerId = removeUser.id === Number(ownerId);
 
         const notification = { leaveRoomNotification: { userId: removeUser.id } };
-        sendNotificationToUsers(users, notification, packetType.LEAVE_ROOM_NOTIFICATION, 0);
+        sendNotificationToUsers(users, notification, PACKET_TYPE.LEAVE_ROOM_NOTIFICATION, 0);
 
         await redis.updateRedisToHash(leaveRoomKey, 'users', users);
         if (roomOwnerId) {
           await gameOnEndNotification(leaveRoomKey);
 
           const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-          sendNotificationToUsers(users, roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0);
+          sendNotificationToUsers(users, roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0);
 
           // Redis에서 방 데이터 삭제
           await redis.delRedisByKey(`room:${leaveRoomKey}`);

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import JoiUtils from '../../utils/joi.util.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import bcrypt from 'bcrypt';
 import { updateUserLogin, findUserById } from '../../db/user/user.db.js';
@@ -91,7 +91,7 @@ const makeResponse = (socket, success, message, token, userInfo, failCode) => {
     loginResponse: { success, message, token, myInfo: userInfo, failCode },
   };
 
-  const loginResponse = createResponse(loginPayload, packetType.LOGIN_RESPONSE, 0);
+  const loginResponse = createResponse(loginPayload, PACKET_TYPE.LOGIN_RESPONSE, 0);
   socket.write(loginResponse);
 
   return;

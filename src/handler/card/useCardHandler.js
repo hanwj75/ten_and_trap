@@ -1,4 +1,4 @@
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode, CardType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { createResponse } from '../../utils/response/createResponse.js';
@@ -46,7 +46,7 @@ export const useCardHandler = async (socket, payload) => {
     let cardTypeKey = Object.keys(CardType.values).find((key) => CardType.values[key] === cardType);
     if (!cardTypeKey) {
       const cardPayload = { useCardResponse: { success: false, failCode: failCode.INVALID_REQUEST } };
-      socket.write(createResponse(cardPayload, packetType.USE_CARD_RESPONSE, 0));
+      socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `존재하지 않는 카드`);
     }
@@ -54,7 +54,7 @@ export const useCardHandler = async (socket, payload) => {
     userData.handCards = JSON.parse(userData.handCards);
     if (!userData.handCards.some((card) => card.type === cardType)) {
       const cardPayload = { useCardResponse: { success: false, failCode: failCode.CHARACTER_NO_CARD } };
-      socket.write(createResponse(cardPayload, packetType.USE_CARD_RESPONSE, 0));
+      socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `손에 해당 카드가 없습니다.`);
     }
@@ -101,14 +101,14 @@ export const useCardHandler = async (socket, payload) => {
 
     // 나에게 카드 사용 알림
     const cardPayload = { useCardResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-    socket.write(createResponse(cardPayload, packetType.USE_CARD_RESPONSE, 0));
+    socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
 
     // 방에 있는 모두에게 카드 사용 알림
     const cardNotification = { useCardNotification: { cardType: cardType, userId: user.id, targetUserId: targetUserId } };
-    sendNotificationToUsers(roomData.users, cardNotification, packetType.USE_CARD_NOTIFICATION, 0);
+    sendNotificationToUsers(roomData.users, cardNotification, PACKET_TYPE.USE_CARD_NOTIFICATION, 0);
 
     const userNotification = { userUpdateNotification: { user: roomData.users } };
-    sendNotificationToUsers(roomData.users, userNotification, packetType.USER_UPDATE_NOTIFICATION, 0);
+    sendNotificationToUsers(roomData.users, userNotification, PACKET_TYPE.USER_UPDATE_NOTIFICATION, 0);
   } catch (err) {
     handleError(socket, err);
   }

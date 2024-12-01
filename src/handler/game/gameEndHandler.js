@@ -1,4 +1,4 @@
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redisInit } from '../../init/initData.js';
 import { addGold, addRankPoint } from '../../db/user/user.db.js';
 import { WinType } from '../../init/loadProto.js';
@@ -23,7 +23,7 @@ export const gameEndNotification = async (socket, roomId) => {
 
     const notification = { gameEndNotification: { winners, winType: WinType.values.PSYCHOPATH_WIN } };
 
-    sendNotificationToUsers(userData, notification, packetType.GAME_END_NOTIFICATION, 0);
+    sendNotificationToUsers(userData, notification, PACKET_TYPE.GAME_END_NOTIFICATION, 0);
 
     winners.forEach(async (user) => {
       await addGold(user);
@@ -58,7 +58,7 @@ export const gameOnEndNotification = async (roomId) => {
     const notification = { gameEndNotification: { winners, winType: WinType.values.NONE_ROLE } };
 
     // 모든 유저에게 게임 종료 알림 전송
-    sendNotificationToUsers(users, notification, packetType.GAME_END_NOTIFICATION, 0);
+    sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_END_NOTIFICATION, 0);
 
     const endUsersId = users.map((user) => {
       return user.id;

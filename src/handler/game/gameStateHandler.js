@@ -1,7 +1,7 @@
 import CharacterPosition from '../../classes/models/characterPosition.class.js';
 import GameState from '../../classes/models/gameState.class.js';
 import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
@@ -46,7 +46,7 @@ export const gamePrepareHandler = async (socket, payload) => {
     // 요청한 유저가 owner인지 확인
     if (+currenRoomData.ownerId !== +user.id) {
       const gamePayload = { gamePrepareResponse: { success: false, failCode: failCode.NOT_ROOM_OWNER } };
-      socket.write(createResponse(gamePayload, packetType.GAME_PREPARE_RESPONSE, 0));
+      socket.write(createResponse(gamePayload, PACKET_TYPE.GAME_PREPARE_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.NOT_ROOM_OWNER, `방장이 아닙니다.`);
     }
@@ -91,11 +91,11 @@ export const gamePrepareHandler = async (socket, payload) => {
       roomData.users = JSON.parse(roomData.users);
       const notification = { gamePrepareNotification: { room: roomData } };
 
-      sendNotificationToUsers(users, notification, packetType.GAME_PREPARE_NOTIFICATION, 0);
+      sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_PREPARE_NOTIFICATION, 0);
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-      socket.write(createResponse(gamePayload, packetType.GAME_PREPARE_RESPONSE, 0));
+      socket.write(createResponse(gamePayload, PACKET_TYPE.GAME_PREPARE_RESPONSE, 0));
     }
   } catch (err) {
     handleError(socket, err);
@@ -149,10 +149,10 @@ export const gameStartHandler = async (socket, payload) => {
 
     //게임 시작 notification
     const notification = { gameStartNotification: { gameState: newState, users: users, characterPositions: positionData } };
-    sendNotificationToUsers(users, notification, packetType.GAME_START_NOTIFICATION, 0);
+    sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_START_NOTIFICATION, 0);
 
     const gamePayload = { gameStartResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-    socket.write(createResponse(gamePayload, packetType.GAME_START_RESPONSE, 0));
+    socket.write(createResponse(gamePayload, PACKET_TYPE.GAME_START_RESPONSE, 0));
   } catch (err) {
     handleError(socket, err);
   }

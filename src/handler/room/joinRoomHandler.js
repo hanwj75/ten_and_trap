@@ -1,7 +1,7 @@
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { characterInitData } from '../../init/initData.js';
@@ -27,7 +27,7 @@ export const joinRoomHandler = async (socket, payload) => {
     if (!roomKeys) {
       console.error(`존재하지 않는 방입니다.`);
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.JOIN_ROOM_FAILED, `존재하지 않는 방입니다.`);
     }
@@ -36,7 +36,7 @@ export const joinRoomHandler = async (socket, payload) => {
     if (roomData.state !== '0') {
       console.error('게임이 시작한 방입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `게임이 시작한 방입니다.`);
     }
@@ -48,19 +48,19 @@ export const joinRoomHandler = async (socket, payload) => {
     if (userExists) {
       console.error('이미 방에 참여한 유저입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.JOIN_ROOM_FAILED, `이미 방에 참여한 유저입니다.`);
     }
     const newUserInfo = { id: user.id, nickname: user.nickName, character: characterInitData };
     const notification = { joinRoomNotification: { joinUser: newUserInfo } };
 
-    sendNotificationToUsers(roomData.users, notification, packetType.JOIN_ROOM_NOTIFICATION, 0);
+    sendNotificationToUsers(roomData.users, notification, PACKET_TYPE.JOIN_ROOM_NOTIFICATION, 0);
 
     if (roomData.users.length >= roomData.maxUserNum) {
       console.error('최대 인원입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `최대 인원입니다.`);
     }
@@ -81,7 +81,7 @@ export const joinRoomHandler = async (socket, payload) => {
     const roomPayload = {
       joinRoomResponse: { success: true, room: roomData, failCode: failCode.NONE_FAILCODE },
     };
-    socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
   } catch (err) {
     handleError(socket, err);
   }

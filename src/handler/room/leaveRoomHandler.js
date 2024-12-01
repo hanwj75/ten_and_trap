@@ -1,7 +1,7 @@
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { handleError } from '../../utils/error/errorHandler.js';
@@ -31,14 +31,14 @@ export const leaveRoomHandler = async (socket, payload) => {
 
     if (!leaveRoomKey) {
       const roomPayload = { leaveRoomResponse: { success: false, failCode: failCode.LEAVE_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `사용자가 참여하고 있는 방이 없습니다: user:${user.id}`);
     }
 
     if (!leaveUserInfo) {
       const roomPayload = { leaveRoomResponse: { success: false, failCode: failCode.LEAVE_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.LEAVE_ROOM_FAILED, `사용자가 참여하고 있는 방이 없습니다: user:${user.id}`);
     }
@@ -51,7 +51,7 @@ export const leaveRoomHandler = async (socket, payload) => {
       const removeUser = users.splice(userIndex, 1)[0];
 
       const notification = { leaveRoomNotification: { userId: removeUser.id } };
-      sendNotificationToUsers(users, notification, packetType.LEAVE_ROOM_NOTIFICATION, 0);
+      sendNotificationToUsers(users, notification, PACKET_TYPE.LEAVE_ROOM_NOTIFICATION, 0);
 
       const roomOwnerId = removeUser.id === Number(ownerId);
       await redis.updateRedisToHash(leaveRoomKey, 'users', users);
@@ -62,7 +62,7 @@ export const leaveRoomHandler = async (socket, payload) => {
       if (roomOwnerId || users.length === 0) {
         // 방 삭제 알림
         const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-        sendNotificationToUsers(users, roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0);
+        sendNotificationToUsers(users, roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0);
 
         // 모든 사용자 상태 업데이트
         users.forEach(async (user) => {
@@ -74,7 +74,7 @@ export const leaveRoomHandler = async (socket, payload) => {
       }
     }
     const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-    socket.write(createResponse(roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0));
   } catch (err) {
     handleError(socket, err);
   }
