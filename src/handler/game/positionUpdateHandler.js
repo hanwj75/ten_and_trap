@@ -38,7 +38,6 @@ export const positionUpdateHandler = async (socket, payload) => {
 
     sendNotificationToUsers(users, notification, packetType.POSITION_UPDATE_NOTIFICATION, 0);
   } catch (err) {
-    console.error(`위치 동기화 에러`, err);
     handleError(socket, err);
   }
 };
