@@ -19,7 +19,6 @@ export const getUserById = (id) => {
     }
     return user;
   } catch (err) {
-    console.error(`아이디를 찾을 수 없습니다.`, err);
     handleError(null, err);
   }
 };
@@ -46,7 +45,6 @@ export const removeUser = async (socket) => {
     }
     return userSessions.splice(index, 1)[0];
   } catch (err) {
-    console.error(`유저 삭제 에러`, err);
     handleError(socket, err);
   }
 };
@@ -70,7 +68,6 @@ export const getAllUser = async () => {
     }
     return userSessions;
   } catch (err) {
-    console.error(`전체 유저 조회 에러`, err);
     handleError(null, err);
   }
 };
