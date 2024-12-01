@@ -2,15 +2,14 @@ import { packetType } from '../constants/header.js';
 import { loginHandler } from './user/loginHandler.js';
 import { registerHandler } from './user/registerHandler.js';
 import { useCardHandler } from './card/useCardHandler.js';
-import {
-  createRoomHandler,
-  getRoomListHandler,
-  joinRandomRoomHandler,
-  joinRoomHandler,
-  leaveRoomHandler,
-} from './room/roomHandler.js';
+
 import { gamePrepareHandler, gameStartHandler } from './game/gameStateHandler.js';
 import { positionUpdateHandler } from './game/positionUpdateHandler.js';
+import { createRoomHandler } from './room/createRoomHandler.js';
+import { getRoomListHandler } from './room/roomlistHandler.js';
+import { joinRoomHandler } from './room/joinRoomHandler.js';
+import { joinRandomRoomHandler } from './room/randomMatchHandler.js';
+import { leaveRoomHandler } from './room/leaveRoomHandler.js';
 
 const handlers = {
   // 회원가입 및 로그인
