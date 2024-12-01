@@ -13,23 +13,22 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
     let opponentHand = JSON.parse(opponentData.handCards);
     let handCardsCount = opponentData.handCardsCount;
 
-    // 카드 2장 랜덤으로 훔침
-    const count = 2;
-
     //상대방 카드가 없는 경우
-    if (!opponentHand || opponentHand.lenght === 0) {
+    if (!opponentHand || opponentHand.length === 0) {
       throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `상대방이 가지고 있는 카드가 없습니다.`);
     }
+    // 카드 2장 랜덤으로 훔침
+    const count = 2;
+    const newHandCards = [];
 
     // 만약 2장이 없다면 다 뺏고 종료
     if (Number(handCardsCount) <= count) {
-      const newHandCards = [];
       [...user.handCards, ...opponentHand].forEach((card) => {
         const existType = newHandCards.find((item) => item.type === card.type);
         if (existType) {
           existType.count += card.count;
         } else {
-          newHandCards.push({ type: card.type, count: 1 });
+          newHandCards.push({ type: card.type, count: card.count });
         }
       });
       user.handCards = newHandCards;
@@ -40,7 +39,7 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
       opponentHand = [];
     } else {
       for (let i = 0; i < count; i++) {
-        const randomIndex = Math.floor(Math.random() * handCardsCount);
+        const randomIndex = Math.floor(Math.random() * opponentHand.length);
         const existType = user.handCards.find((card) => card.type === opponentHand[randomIndex].type);
 
         if (existType) {
@@ -50,6 +49,7 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
         }
         user.handCardsCount++;
         opponentHand[randomIndex].count--;
+        //카드 수가 - 이하일 경우 제거
         if (opponentHand[randomIndex].count <= 0) {
           opponentHand.splice(randomIndex, 1);
         }
@@ -59,6 +59,10 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
 
     // redis에 상대 유저 정보 업데이트
     const updateRoomData = roomData.users.find((user) => user.id == opponent.id);
+    if (!updateRoomData) {
+      throw new CustomError(ErrorCodes.CHARACTER_NOT_FOUND, `상대방 정보가 없습니다.`);
+    }
+
     const users = JSON.stringify(roomData.users);
     const UpdateCharacter = updateRoomData.character;
     UpdateCharacter.handCards = opponentHand;
