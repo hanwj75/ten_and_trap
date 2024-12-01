@@ -2,7 +2,7 @@ import Room from '../../classes/models/room.class.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { characterInitData } from '../../init/initData.js';
 import { handleError } from '../../utils/error/errorHandler.js';
@@ -39,7 +39,7 @@ export const createRoomHandler = async (socket, payload) => {
 
       if (roomOwnerId === ownerId) {
         const roomPayload = { createRoomResponse: { success: false, room: null, failCode: failCode.CREATE_ROOM_FAILED } };
-        socket.write(createResponse(roomPayload, packetType.CREATE_ROOM_RESPONSE, 0));
+        socket.write(createResponse(roomPayload, PACKET_TYPE.CREATE_ROOM_RESPONSE, 0));
 
         throw new CustomError(ErrorCodes.CREATE_ROOM_FAILED, `이미 방을 소유하고 있습니다.`);
       }
@@ -69,7 +69,7 @@ export const createRoomHandler = async (socket, payload) => {
     modifyUserData(user.id, { joinRoom: newRoom.id });
 
     const roomPayload = { createRoomResponse: { success: true, room: newRoom, failCode: failCode.NONE_FAILCODE } };
-    socket.write(createResponse(roomPayload, packetType.CREATE_ROOM_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, PACKET_TYPE.CREATE_ROOM_RESPONSE, 0));
   } catch (err) {
     handleError(socket, err);
   }

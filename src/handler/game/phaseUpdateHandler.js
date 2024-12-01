@@ -5,7 +5,7 @@
  */
 
 import CharacterPosition from '../../classes/models/characterPosition.class.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket } from '../../sessions/user.session.js';
 import CustomError from '../../utils/error/customError.js';
@@ -41,7 +41,7 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     const phaseType = phase === '3' ? '1' : '3';
     let nextPhaseAt = Date.now() + nextState;
     const notification = { phaseUpdateNotification: { phaseType, nextPhaseAt, CharacterPosition } };
-    sendNotificationToUsers(users, notification, packetType.PHASE_UPDATE_NOTIFITION, 0);
+    sendNotificationToUsers(users, notification, PACKET_TYPE.PHASE_UPDATE_NOTIFITION, 0);
   } catch (err) {
     handleError(socket, err);
   }

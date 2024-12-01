@@ -1,5 +1,5 @@
 import { createResponse } from '../../utils/response/createResponse.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { handleError } from '../../utils/error/errorHandler.js';
 /**
@@ -16,7 +16,7 @@ export const getRoomListHandler = async (socket, payload) => {
       allRooms = await redis.getAllFieldsByValue(roomKeys, 'state', '0');
     }
     const roomPayload = { getRoomListResponse: { rooms: allRooms } };
-    socket.write(createResponse(roomPayload, packetType.GET_ROOMLIST_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, PACKET_TYPE.GET_ROOMLIST_RESPONSE, 0));
   } catch (err) {
     handleError(socket, err);
   }

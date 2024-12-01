@@ -1,4 +1,4 @@
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { getUserBySocket, modifyUserData, findUsersByJoinRoom } from '../../sessions/user.session.js';
 import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
@@ -36,7 +36,7 @@ export const positionUpdateHandler = async (socket, payload) => {
 
     const notification = { positionUpdateNotification: { characterPositions: [...userPositions, currentUserPosition] } };
 
-    sendNotificationToUsers(users, notification, packetType.POSITION_UPDATE_NOTIFICATION, 0);
+    sendNotificationToUsers(users, notification, PACKET_TYPE.POSITION_UPDATE_NOTIFICATION, 0);
   } catch (err) {
     handleError(socket, err);
   }

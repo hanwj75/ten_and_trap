@@ -1,7 +1,7 @@
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { characterInitData } from '../../init/initData.js';
@@ -30,7 +30,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
     if (roomKeys.length > 0) {
     } else {
       const roomPayload = { joinRandomRoomResponse: { success: false, room: null, failCode: failCode.ROOM_NOT_FOUND } };
-      socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_RANDOM_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `해당 방이 존재하지 않습니다.`);
     }
@@ -44,7 +44,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       roomData = await redis.getAllFieldsFromHash(`room:${randomRoomKey.id}`);
     } else {
       const roomPayload = { joinRandomRoomResponse: { success: false, room: null, failCode: failCode.ROOM_NOT_FOUND } };
-      socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_RANDOM_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `해당되는 방이 존재하지 않습니다.`);
     }
@@ -55,14 +55,14 @@ export const joinRandomRoomHandler = async (socket, payload) => {
     //방 인원이 최대인 경우
     if (roomData.users.length >= roomData.maxUserNum) {
       const roomPayload = { joinRandomRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
-      socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+      socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_RANDOM_ROOM_RESPONSE, 0));
 
       throw new CustomError(ErrorCodes.JOIN_ROOM_FAILED, `최대 인원입니다.`);
     }
     //방 상태 변경 알림
     const notification = { joinRoomNotification: { joinUser: newUserInfo } };
 
-    sendNotificationToUsers(roomData.users, notification, packetType.JOIN_ROOM_NOTIFICATION, 0);
+    sendNotificationToUsers(roomData.users, notification, PACKET_TYPE.JOIN_ROOM_NOTIFICATION, 0);
     // 유저를 방의 유저 목록에 추가
     roomData.users.push(newUserInfo);
 
@@ -80,7 +80,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
 
     //랜덤매칭에 성공한 경우
     const roomPayload = { joinRandomRoomResponse: { success: true, room: roomData, failCode: failCode.NONE_FAILCODE } };
-    socket.write(createResponse(roomPayload, packetType.JOIN_RANDOM_ROOM_RESPONSE, 0));
+    socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_RANDOM_ROOM_RESPONSE, 0));
   } catch (err) {
     handleError(socket, err);
   }
