@@ -112,6 +112,9 @@ export const gameStartHandler = async (socket, payload) => {
     console.log(`게임시작!`);
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
+    if (!user) {
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
+    }
     //현재 유저가 있는 방ID
     const currenUserRoomId = await redis.getRedisToHash(`user:${user.id}`, 'joinRoom');
     //현재 방에있는 유저 목록
@@ -151,6 +154,6 @@ export const gameStartHandler = async (socket, payload) => {
     const gamePayload = { gameStartResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
     socket.write(createResponse(gamePayload, packetType.GAME_START_RESPONSE, 0));
   } catch (err) {
-    console.error(`게임시작 에러`, err);
+    handleError(socket, err);
   }
 };
