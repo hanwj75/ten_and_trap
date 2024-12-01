@@ -5,6 +5,7 @@ import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
+import { characterInitData } from '../../init/initData.js';
 
 /**
  * @desc 방 만들기
@@ -24,7 +25,7 @@ export const createRoomHandler = async (socket, payload) => {
       return;
     }
 
-    const userInfo = { id: user.id, nickname: user.nickName, character: user.character };
+    const userInfo = { id: user.id, nickname: user.nickName, character: characterInitData };
 
     const roomByUserId = await redis.getRoomByUserId(`room:${roomId}`, `ownerId`);
     if (roomByUserId) {
@@ -128,7 +129,7 @@ export const joinRoomHandler = async (socket, payload) => {
       socket.write(createResponse(roomPayload, packetType.JOIN_ROOM_RESPONSE, 0));
       return;
     }
-    const newUserInfo = { id: user.id, nickname: user.nickName, character: user.character };
+    const newUserInfo = { id: user.id, nickname: user.nickName, character: characterInitData };
     const notification = { joinRoomNotification: { joinUser: newUserInfo } };
 
     sendNotificationToUsers(roomData.users, notification, packetType.JOIN_ROOM_NOTIFICATION, 0);
@@ -205,7 +206,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
     }
 
     roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
-    const newUserInfo = { id: user.id, nickname: user.nickName, character: user.character };
+    const newUserInfo = { id: user.id, nickname: user.nickName, character: characterInitData };
 
     //방 인원이 최대인 경우
     if (roomData.users.length >= roomData.maxUserNum) {

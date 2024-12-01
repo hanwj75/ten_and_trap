@@ -177,6 +177,12 @@ message S2CUseCardNotification {
     int64 targetUserId = 3; // 타겟 없으면 0
 }
 
+message S2CCardEffectNotification {
+    CardType cardType = 1;
+    int64 userId = 2;
+    bool success = 3;
+}
+
 message S2CUserUpdateNotification {
     repeated UserData user = 1;
 }
@@ -187,15 +193,31 @@ message S2CPhaseUpdateNotification {
     repeated CharacterPositionData characterPositions = 3; // 변경된 캐릭터 위치
 }
 
+
+message C2SReactionRequest {
+    ReactionType reactionType = 1; // NOT_USE_CARD = 1
+}
+
+message S2CReactionResponse {
+    bool success = 1;
+    GlobalFailCode failCode = 2;
+}
+
 message S2CGameWinNotification {
     int32 ranking = 1;
     string winner = 2;
 }
 
+// message S2CGameEndNotification {
+//     string loser = 1;
+//     string winner = 2;
+// }
+
 message S2CGameEndNotification {
-    string loser = 1;
-    string winner = 2;
+    repeated int64 winners = 1;
+    WinType winType = 2;
 }
+
 
 message CardData {
     CardType type = 1;
@@ -276,11 +298,20 @@ S2CUseCardResponse useCardResponse = 26; // 성공 여부만 반환하고 대상
 
 S2CUseCardNotification useCardNotification = 27;
 
+S2CCardEffectNotification cardEffectNotification = 29;
+
 // 유저 상태 동기화
 S2CUserUpdateNotification userUpdateNotification = 33;
 
 S2CPhaseUpdateNotification phaseUpdateNotification = 34;
 
+// 리액션
+C2SReactionRequest reactionRequest = 35;
+
+S2CReactionResponse reactionResponse = 36;
+
+
+//게임 종료
 S2CGameWinNotification gameWinNotification = 46;
 
 S2CGameEndNotification gameEndNotification =39;
@@ -379,6 +410,12 @@ enum RoleType {
     HITMAN = 3;
     PSYCHOPATH = 4;
 }
+
+enum WinType {
+    TARGET_AND_BODYGUARD_WIN = 0;
+    HITMAN_WIN = 1;
+    PSYCHOPATH_WIN = 2;
+    }
 
 enum RoomStateType {
     WAIT = 0;

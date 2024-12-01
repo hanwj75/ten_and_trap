@@ -9,29 +9,36 @@ import { packetType } from '../../constants/header.js';
 import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
+import { gameEndNotification } from './gameEndHandler.js';
 
-export const phaseUpdateHandler = async (room, nextState) => {
+export const phaseUpdateHandler = async (socket, room, nextState) => {
   try {
     //phase 전환
     const phase = room.phase;
 
     const users = await JSON.parse(room.users);
-    if (users.length > 0) {
-      if (phase === '3') {
-        console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
-        await redis.updateUsersToRoom(room.id, `phase`, 1);
-      } else if (phase === '1') {
-        console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
-        await redis.updateUsersToRoom(room.id, `phase`, 3);
+
+    users.forEach((user) => {
+      console.log(user.character.handCardsCount);
+    });
+    //차후 10장으로 변경
+    const isWinner = users.findIndex((user) => user.character.handCardsCount > 5);
+
+    if (phase === '3') {
+      console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      await redis.updateUsersToRoom(room.id, `phase`, 1);
+
+      if (isWinner !== -1) {
+        gameEndNotification(socket, room.id);
       }
-      const phaseType = phase === '3' ? '1' : '3';
-      let nextPhaseAt = Date.now() + nextState;
-      const notification = { phaseUpdateNotification: { phaseType, nextPhaseAt, CharacterPosition } };
-      sendNotificationToUsers(users, notification, packetType.PHASE_UPDATE_NOTIFITION, 0);
-    } else {
-      console.error(`방에 유저가 없음`);
-      return;
+    } else if (phase === '1') {
+      console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      await redis.updateUsersToRoom(room.id, `phase`, 3);
     }
+    const phaseType = phase === '3' ? '1' : '3';
+    let nextPhaseAt = Date.now() + nextState;
+    const notification = { phaseUpdateNotification: { phaseType, nextPhaseAt, CharacterPosition } };
+    sendNotificationToUsers(users, notification, packetType.PHASE_UPDATE_NOTIFITION, 0);
   } catch (err) {
     console.error(`페이즈 전환 에러`, err);
   }
@@ -46,6 +53,7 @@ export const button = async (socket) => {
   try {
     const user = await getUserBySocket(socket);
     const currentUserId = user.id;
+    console.log('button currentUserId test : ', currentUserId);
 
     const roomId = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
     const isPushed = await redis.getAllFieldsFromHash(`room:${roomId}`, `isPushed`);
@@ -75,7 +83,7 @@ export const startCustomInterval = async (socket, roomId) => {
       // 다음 인터벌 설정
       currentIndex = (currentIndex + 1) % intervals.length;
       const nextState = intervals[currentIndex];
-      phaseUpdateHandler(room, nextState);
+      phaseUpdateHandler(socket, room, nextState);
       setTimeout(runInterval, nextState);
     };
     setTimeout(runInterval, intervals[currentIndex]);

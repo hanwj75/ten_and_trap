@@ -52,14 +52,44 @@ export const gamePrepareHandler = async (socket, payload) => {
       return;
     }
 
+    // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
+    const handCards = [
+      { type: 1, count: 1 },
+      { type: 2, count: 1 },
+      { type: 3, count: 1 },
+      { type: 4, count: 1 },
+      { type: 5, count: 1 },
+    ];
+
     //방 상태 업데이트
     if (currenRoomData.state === '0') {
       await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
       const reCurrenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
 
-      reCurrenRoomData.users = JSON.parse(reCurrenRoomData.users);
+      const users = JSON.parse(reCurrenRoomData.users);
+      for (const user of users) {
+        user.character.characterType = 1;
+        user.character.roleType = 1;
+        user.character.handCards = handCards;
+        user.character.handCardsCount = handCards.length;
+        const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
+        const userHandCards = JSON.stringify(handCards);
+        const updatedUserData = {
+          ...userData,
+          characterType: 1,
+          roleType: 1,
+          handCards: userHandCards,
+          handCardsCount: handCards.length,
+        };
+        await redis.addRedisToHash(`user:${user.id}`, updatedUserData);
+      }
+
+      await redis.addRedisToHash(`room:${reCurrenRoomData.id}`, { ...reCurrenRoomData, users: JSON.stringify(users) });
+
+      const roomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
       //준비 notification 쏴주는부분
-      const notification = { gamePrepareNotification: { room: reCurrenRoomData } };
+      roomData.users = JSON.parse(roomData.users);
+      const notification = { gamePrepareNotification: { room: roomData } };
 
       sendNotificationToUsers(users, notification, packetType.GAME_PREPARE_NOTIFICATION, 0);
 
