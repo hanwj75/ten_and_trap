@@ -23,7 +23,6 @@ export const createRoomHandler = async (socket, payload) => {
     const user = await getUserBySocket(socket);
 
     if (!user) {
-      console.error(`존재하지 않는 유저입니다.`);
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
 

@@ -30,6 +30,7 @@ export const loginHandler = async (socket, payload) => {
 
     if (!checkExistId) {
       makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', failCode.AUTHENTICATION_FAILED);
+
       throw new CustomError(ErrorCodes.AUTHENTICATION_FAILED, `아이디 또는 비밀번호가 잘못되었습니다.`);
     }
 
@@ -37,6 +38,7 @@ export const loginHandler = async (socket, payload) => {
     const checkPassword = await bcrypt.compare(password, checkExistId.password);
     if (!checkPassword) {
       makeResponse(socket, false, '아이디 또는 비밀번호가 잘못되었습니다.', '', '', failCode.AUTHENTICATION_FAILED);
+
       throw new CustomError(ErrorCodes.AUTHENTICATION_FAILED, `아이디 또는 비밀번호가 잘못되었습니다.`);
     }
 
@@ -45,6 +47,7 @@ export const loginHandler = async (socket, payload) => {
 
     if (isExistUser) {
       makeResponse(socket, false, '이미 접속중인 아이디', '', '', failCode.AUTHENTICATION_FAILED);
+
       throw new CustomError(ErrorCodes.AUTHENTICATION_FAILED, `이미 접속중인 아이디`);
     }
 

@@ -17,7 +17,6 @@ export const positionUpdateHandler = async (socket, payload) => {
 
     const user = await getUserBySocket(socket);
     if (!user) {
-      console.error(`존재하지 않는 유저입니다.`, err);
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
     // 현재 사용자의 위치 업데이트
