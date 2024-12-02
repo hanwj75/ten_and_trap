@@ -11,7 +11,7 @@ export const invalidCard = async (userData, opponentData, roomData) => {
   const user = userData;
   user.stateInfo = JSON.parse(user.stateInfo);
   user.stateInfo = stateInitData;
-  console.log('test121:' + user.stateInfo.stateTargetUserId);
+
   const opponent = opponentData;
   // redis에 상대 유저 정보 업데이트
   const updateRoomData = roomData.users.find((user) => user.id == opponent.id);
