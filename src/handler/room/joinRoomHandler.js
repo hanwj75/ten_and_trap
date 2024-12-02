@@ -25,7 +25,6 @@ export const joinRoomHandler = async (socket, payload) => {
 
     //방이 존재하지 않을경우
     if (!roomKeys) {
-      console.error(`존재하지 않는 방입니다.`);
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
@@ -34,7 +33,6 @@ export const joinRoomHandler = async (socket, payload) => {
 
     //게임이 시작한 경우
     if (roomData.state !== '0') {
-      console.error('게임이 시작한 방입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
@@ -46,7 +44,6 @@ export const joinRoomHandler = async (socket, payload) => {
     //이미 방에 존재하는 경우
     const userExists = roomData.users.some((existingUser) => existingUser.id === user.id);
     if (userExists) {
-      console.error('이미 방에 참여한 유저입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
@@ -58,7 +55,6 @@ export const joinRoomHandler = async (socket, payload) => {
     sendNotificationToUsers(roomData.users, notification, PACKET_TYPE.JOIN_ROOM_NOTIFICATION, 0);
 
     if (roomData.users.length >= roomData.maxUserNum) {
-      console.error('최대 인원입니다.');
       const roomPayload = { joinRoomResponse: { success: false, room: null, failCode: failCode.JOIN_ROOM_FAILED } };
       socket.write(createResponse(roomPayload, PACKET_TYPE.JOIN_ROOM_RESPONSE, 0));
 
