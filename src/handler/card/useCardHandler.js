@@ -8,11 +8,12 @@ import { stealTwoCard } from './cardType/stealTwoCard.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { throwAwayYourCard } from './cardType/throwAwayYourCard.js';
 import { throwAwayMyCard } from './cardType/throwAwayMyCard.js';
+import { invalidCard } from './cardType/invalidCard.js';
 
 /**
  * @dest 카드 사용 요구
  * @author 박건순
- * @todo 카드 사용 검증하기
+ *
  */
 export const useCardHandler = async (socket, payload) => {
   try {
@@ -67,9 +68,14 @@ export const useCardHandler = async (socket, payload) => {
         drawThreeCard(userData);
         break;
       case 3:
-        throwAwayMyCard(userData);
+        invalidCard(userData, opponent, roomData);
+        // const animationNotification = { animationNotification: { userId: userData.id, animationType: 3 } };
+        // sendNotificationToUsers(roomData.users, animationNotification, 45, 0);
         break;
       case 4:
+        throwAwayMyCard(userData);
+        break;
+      case 5:
         throwAwayYourCard(opponent, roomData);
         break;
       default:
@@ -78,6 +84,7 @@ export const useCardHandler = async (socket, payload) => {
     }
 
     const updateRoomData = roomData.users.find((user) => user.id == userData.id);
+    updateRoomData.character.stateInfo = userData.stateInfo;
     updateRoomData.character.handCards = userData.handCards;
     updateRoomData.character.handCardsCount = userData.handCardsCount;
 
@@ -85,7 +92,12 @@ export const useCardHandler = async (socket, payload) => {
     await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 
     const handCards = JSON.stringify(userData.handCards);
-    const updatedUserData = { ...userData, handCards, handCardsCount: userData.handCardsCount };
+    const updatedUserData = {
+      ...userData,
+      stateInfo: JSON.stringify(userData.stateInfo),
+      handCards,
+      handCardsCount: userData.handCardsCount,
+    };
     await redis.addRedisToHash(`user:${user.id}`, updatedUserData);
 
     console.log('test111:' + JSON.stringify(userData.handCards));

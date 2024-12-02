@@ -1,3 +1,9 @@
+/**
+ * @dest 버리기 카드 사용
+ * @author 박건순
+ *
+ */
+
 export const throwAwayMyCard = async (userData) => {
   const user = userData;
 

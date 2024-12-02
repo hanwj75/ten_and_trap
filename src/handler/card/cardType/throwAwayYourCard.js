@@ -1,5 +1,10 @@
 import { redis } from '../../../init/redis/redis.js';
-import { modifyUserData, getUserById } from '../../../sessions/user.session.js';
+
+/**
+ * @dest 상대방버리기 카드 사용
+ * @author 박건순
+ *
+ */
 
 export const throwAwayYourCard = async (opponentData, roomData) => {
   const opponent = opponentData;
