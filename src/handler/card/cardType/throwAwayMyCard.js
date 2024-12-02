@@ -1,28 +1,12 @@
-import { PACKET_TYPE } from '../../../constants/header.js';
-import { GlobalFailCode } from '../../../init/loadProto.js';
-import CustomError from '../../../utils/error/customError.js';
-import { ErrorCodes } from '../../../utils/error/errorCodes.js';
-import { handleError } from '../../../utils/error/errorHandler.js';
-import { createResponse } from '../../../utils/response/createResponse.js';
+/**
+ * @dest 버리기 카드 사용
+ * @author 박건순
+ *
+ */
 
-export const throwAwayMyCard = async (socket, userData) => {
+export const throwAwayMyCard = async (userData) => {
   try {
     const user = userData;
-    const failCode = GlobalFailCode.values;
-    //handCards 정의되어 있는지 확인
-    if (!user.handCards || !Array.isArray(user.handCards)) {
-      throw new CustomError(ErrorCodes.INVALID_REQUEST, `유효하지 않은 카드 데이터`);
-    }
-    // handCardsCount가 실제 handCards 배열의 길이와 일치하도록 설정
-    user.handCardsCount = user.handCards.length;
-
-    // 카드가 없을 경우 처리
-    if (user.handCardsCount === 0) {
-      const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
-      socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
-
-      throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `버릴 카드가 없습니다.`);
-    }
 
     const randomIndex = Math.floor(Math.random() * user.handCardsCount);
     const userHandCard = user.handCards[randomIndex];

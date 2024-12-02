@@ -11,11 +11,12 @@ import { throwAwayMyCard } from './cardType/throwAwayMyCard.js';
 import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { handleError } from '../../utils/error/errorHandler.js';
+import { invalidCard } from './cardType/invalidCard.js';
 
 /**
  * @dest 카드 사용 요구
  * @author 박건순
- * @todo 카드 사용 검증하기
+ *
  */
 export const useCardHandler = async (socket, payload) => {
   try {
@@ -48,6 +49,8 @@ export const useCardHandler = async (socket, payload) => {
     // 카드타입이 존재하는 카드인지
     let cardTypeKey = Object.keys(CardType.values).find((key) => CardType.values[key] === cardType);
     if (!cardTypeKey) {
+      const cardPayload = { useCardResponse: { success: false, failCode: failCode.INVALID_REQUEST } };
+      socket.write(createResponse(cardPayload, packetType.USE_CARD_RESPONSE, 0));
       throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `존재하지 않는 카드`);
     }
     // 손에 카드 있는지 검증
@@ -73,16 +76,21 @@ export const useCardHandler = async (socket, payload) => {
     // 카드별 함수 실행
     switch (cardType) {
       case 1:
-        stealTwoCard(socket, userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
+        stealTwoCard(userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
         break;
       case 2:
-        drawThreeCard(socket, userData);
+        drawThreeCard(userData);
         break;
       case 3:
-        throwAwayMyCard(socket, userData);
+        invalidCard(userData, opponent, roomData);
+        // const animationNotification = { animationNotification: { userId: userData.id, animationType: 3 } };
+        // sendNotificationToUsers(roomData.users, animationNotification, 45, 0);
         break;
       case 4:
-        throwAwayYourCard(socket, opponent, roomData);
+        throwAwayYourCard(opponent, roomData);
+        break;
+      case 5:
+        throwAwayMyCard(userData);
         break;
       default:
         const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
@@ -92,6 +100,7 @@ export const useCardHandler = async (socket, payload) => {
     }
 
     const updateRoomData = roomData.users.find((user) => user.id == userData.id);
+    updateRoomData.character.stateInfo = userData.stateInfo;
     updateRoomData.character.handCards = userData.handCards;
     updateRoomData.character.handCardsCount = userData.handCardsCount;
 
@@ -99,7 +108,12 @@ export const useCardHandler = async (socket, payload) => {
     await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 
     const handCards = JSON.stringify(userData.handCards);
-    const updatedUserData = { ...userData, handCards, handCardsCount: userData.handCardsCount };
+    const updatedUserData = {
+      ...userData,
+      stateInfo: JSON.stringify(userData.stateInfo),
+      handCards,
+      handCardsCount: userData.handCardsCount,
+    };
     await redis.addRedisToHash(`user:${user.id}`, updatedUserData);
 
     // 나에게 카드 사용 알림

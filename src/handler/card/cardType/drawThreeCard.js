@@ -1,5 +1,12 @@
 import { getGameAssets } from '../../../init/assets.js';
-export const drawThreeCard = async (socket, userData) => {
+
+/**
+ * @dest 드로우 3 카드 사용
+ * @author 박건순
+ *
+ */
+
+export const drawThreeCard = async (userData) => {
   try {
     const { card } = getGameAssets();
     console.log(card.data[0].id);
