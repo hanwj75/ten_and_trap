@@ -76,10 +76,10 @@ export const useCardHandler = async (socket, payload) => {
     // 카드별 함수 실행
     switch (cardType) {
       case 1:
-        stealTwoCard(socket, userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
+        stealTwoCard(userData, opponent, roomData); // 여기는 타켓의 카드를 뺏는 카드로 만들 예정
         break;
       case 2:
-        drawThreeCard(socket, userData);
+        drawThreeCard(userData);
         break;
       case 3:
         invalidCard(userData, opponent, roomData);
@@ -87,10 +87,10 @@ export const useCardHandler = async (socket, payload) => {
         // sendNotificationToUsers(roomData.users, animationNotification, 45, 0);
         break;
       case 4:
-        throwAwayMyCard(userData);
+        throwAwayYourCard(opponent, roomData);
         break;
       case 5:
-        throwAwayYourCard(opponent, roomData);
+        throwAwayMyCard(userData);
         break;
       default:
         const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };

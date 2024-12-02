@@ -1,21 +1,17 @@
-import { PACKET_TYPE } from '../../../constants/header.js';
-import { GlobalFailCode } from '../../../init/loadProto.js';
 import { getGameAssets } from '../../../init/assets.js';
 import { CharacterStateType } from '../../../init/loadProto.js';
 import { redis } from '../../../init/redis/redis.js';
 import CustomError from '../../../utils/error/customError.js';
 import { ErrorCodes } from '../../../utils/error/errorCodes.js';
 import { handleError } from '../../../utils/error/errorHandler.js';
-import { createResponse } from '../../../utils/response/createResponse.js';
 
 /**
  * @dest 스틸 2 카드 사용
  * @author 박건순
  *
  */
-export const stealTwoCard = async (socket, userData, opponentData, roomData) => {
+export const stealTwoCard = async (userData, opponentData, roomData) => {
   try {
-    const failCode = GlobalFailCode.values;
     if (!userData || !opponentData || !roomData) {
       throw new CustomError(ErrorCodes.INVALID_REQUEST, `유효하지 않은 유저 데이터 또는 방 데이터 입니다.`);
     }
@@ -25,14 +21,6 @@ export const stealTwoCard = async (socket, userData, opponentData, roomData) => 
     let opponentHand = opponentData.handCards;
     opponentHand = JSON.parse(opponentHand);
     let opponentCount = opponentData.handCardsCount;
-
-    //상대방 카드가 없는 경우
-    if (!opponentHand || opponentHand.length === 0) {
-      const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
-      socket.write(createResponse(cardPayload, PACKET_TYPE.USE_CARD_RESPONSE, 0));
-
-      throw new CustomError(ErrorCodes.CHARACTER_NO_CARD, `상대방이 가지고 있는 카드가 없습니다.`);
-    }
 
     // 카드 2장 랜덤으로 훔침
     const count = 2;

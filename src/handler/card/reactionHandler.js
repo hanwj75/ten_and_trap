@@ -1,4 +1,4 @@
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 /**
@@ -25,7 +25,7 @@ export const reactionHandler = async (socket, payload) => {
     }
 
     const reactionPayload = { reactionResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-    socket.write(createResponse(reactionPayload, packetType.REACTION_RESPONSE, 0));
+    socket.write(createResponse(reactionPayload, PACKET_TYPE.REACTION_RESPONSE, 0));
   } catch (err) {
     console.error('reaction 에러:', err);
   }

@@ -1,5 +1,3 @@
-import { PACKET_TYPE } from '../../../constants/header.js';
-import { GlobalFailCode } from '../../../init/loadProto.js';
 import { redis } from '../../../init/redis/redis.js';
 
 /**

@@ -58,30 +58,30 @@ const handlers = {
   [PACKET_TYPE.USE_CARD_REQUEST]: {
     handler: useCardHandler,
   },
-  [packetType.USE_CARD_NOTIFICATION]: {
+  [PACKET_TYPE.USE_CARD_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
-  [packetType.REACTION_REQUEST]: {
+  [PACKET_TYPE.REACTION_REQUEST]: {
     handler: reactionHandler,
   },
 
   //유저 정보 업데이트
-  [packetType.USER_UPDATE_NOTIFICATION]: {
+  [PACKET_TYPE.USER_UPDATE_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
 
   // 페이즈 업데이트
-  [packetType.PHASE_UPDATE_NOTIFITION]: {
+  [PACKET_TYPE.PHASE_UPDATE_NOTIFITION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
 
   // 게임 우승 알림
-  [packetType.GAME_WIN_NOTIFICATION]: {
+  [PACKET_TYPE.GAME_WIN_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
 
   // 게임 종료 알림
-  [packetType.GAME_END_NOTIFICATION]: {
+  [PACKET_TYPE.GAME_END_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
 };
