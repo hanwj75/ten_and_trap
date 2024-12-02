@@ -1,10 +1,13 @@
 import CharacterPosition from '../../classes/models/characterPosition.class.js';
 import GameState from '../../classes/models/gameState.class.js';
 import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
+import CustomError from '../../utils/error/customError.js';
+import { ErrorCodes } from '../../utils/error/errorCodes.js';
+import { handleError } from '../../utils/error/errorHandler.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { button } from './phaseUpdateHandler.js';
@@ -20,9 +23,9 @@ export const gamePrepareHandler = async (socket, payload) => {
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
     //현재 유저가 있는 방ID
-    const currenUserRoomId = await redis.getRoomByUserId(`user:${user.id}`, 'joinRoom');
+    const currenUserRoomId = await redis.getRedisToHash(`user:${user.id}`, 'joinRoom');
     //현재 방에있는 유저 목록
-    const getreadyUser = await redis.getRoomByUserId(`room:${currenUserRoomId}`, 'users');
+    const getreadyUser = await redis.getRedisToHash(`room:${currenUserRoomId}`, 'users');
     //방 상태 정보
     const currenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
     //방에 있는 유저
@@ -30,26 +33,22 @@ export const gamePrepareHandler = async (socket, payload) => {
 
     if (!user) {
       console.error(`존재하지 않는 유저입니다.`);
-      return;
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
-    // //게임시작시 최대인원 아닐경우
+    //게임시작시 최대인원 아닐경우
     // if (users.length < currenRoomData.maxUserNum) {
-    //   const gamePreparePayload = {
-    //     gamePrepareResponse: {
-    //       success: false,
-    //       failCode: failCode.INVALID_ROOM_STATE,
-    //     },
-    //   };
+    //   const gamePreparePayload = { gamePrepareResponse: { success: false, failCode: failCode.INVALID_ROOM_STATE } };
     //   socket.write(createResponse(gamePreparePayload, packetType.GAME_PREPARE_RESPONSE, 0));
-    //   return;
+
+    //   throw new CustomError(ErrorCodes.INVALID_ROOM_STATE, `인원이 충족되지 않았습니다.`);
     // }
 
     // 요청한 유저가 owner인지 확인
     if (+currenRoomData.ownerId !== +user.id) {
       const gamePayload = { gamePrepareResponse: { success: false, failCode: failCode.NOT_ROOM_OWNER } };
+      socket.write(createResponse(gamePayload, PACKET_TYPE.GAME_PREPARE_RESPONSE, 0));
 
-      socket.write(createResponse(gamePayload, packetType.GAME_PREPARE_RESPONSE, 0));
-      return;
+      throw new CustomError(ErrorCodes.NOT_ROOM_OWNER, `방장이 아닙니다.`);
     }
 
     // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
@@ -63,7 +62,7 @@ export const gamePrepareHandler = async (socket, payload) => {
 
     //방 상태 업데이트
     if (currenRoomData.state === '0') {
-      await redis.updateUsersToRoom(currenUserRoomId, `state`, 1);
+      await redis.updateRedisToHash(currenUserRoomId, `state`, 1);
       const reCurrenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
 
       const users = JSON.parse(reCurrenRoomData.users);
@@ -72,6 +71,7 @@ export const gamePrepareHandler = async (socket, payload) => {
         user.character.roleType = 1;
         user.character.handCards = handCards;
         user.character.handCardsCount = handCards.length;
+
         const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
         const userHandCards = JSON.stringify(handCards);
         const updatedUserData = {
@@ -91,14 +91,14 @@ export const gamePrepareHandler = async (socket, payload) => {
       roomData.users = JSON.parse(roomData.users);
       const notification = { gamePrepareNotification: { room: roomData } };
 
-      sendNotificationToUsers(users, notification, packetType.GAME_PREPARE_NOTIFICATION, 0);
+      sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_PREPARE_NOTIFICATION, 0);
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-      socket.write(createResponse(gamePayload, packetType.GAME_PREPARE_RESPONSE, 0));
+      socket.write(createResponse(gamePayload, PACKET_TYPE.GAME_PREPARE_RESPONSE, 0));
     }
   } catch (err) {
-    console.error(`게임준비 에러`, err);
+    handleError(socket, err);
   }
 };
 
@@ -112,10 +112,13 @@ export const gameStartHandler = async (socket, payload) => {
     console.log(`게임시작!`);
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
+    if (!user) {
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
+    }
     //현재 유저가 있는 방ID
-    const currenUserRoomId = await redis.getRoomByUserId(`user:${user.id}`, 'joinRoom');
+    const currenUserRoomId = await redis.getRedisToHash(`user:${user.id}`, 'joinRoom');
     //현재 방에있는 유저 목록
-    const getreadyUser = await redis.getRoomByUserId(`room:${currenUserRoomId}`, 'users');
+    const getreadyUser = await redis.getRedisToHash(`room:${currenUserRoomId}`, 'users');
     //방 상태 정보
     const currenRoomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
     //방에 있는 유저
@@ -136,21 +139,21 @@ export const gameStartHandler = async (socket, payload) => {
     }
 
     if (currenRoomData.state === '1') {
-      await redis.updateUsersToRoom(currenUserRoomId, `state`, 2);
+      await redis.updateRedisToHash(currenUserRoomId, `state`, 2);
     }
     const currentPhase = PhaseType.values.DAY;
-    const countTime = Date.now() + 5000;
+    const countTime = Date.now() + 500000;
     const newState = new GameState(currentPhase, countTime);
     //페이즈 업데이트 실행
     await button(socket);
 
     //게임 시작 notification
     const notification = { gameStartNotification: { gameState: newState, users: users, characterPositions: positionData } };
-    sendNotificationToUsers(users, notification, packetType.GAME_START_NOTIFICATION, 0);
+    sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_START_NOTIFICATION, 0);
 
     const gamePayload = { gameStartResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-    socket.write(createResponse(gamePayload, packetType.GAME_START_RESPONSE, 0));
+    socket.write(createResponse(gamePayload, PACKET_TYPE.GAME_START_RESPONSE, 0));
   } catch (err) {
-    console.error(`게임시작 에러`, err);
+    handleError(socket, err);
   }
 };

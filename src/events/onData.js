@@ -35,9 +35,9 @@ export const onData = (socket) => async (data) => {
       const payload = socket.buffer.subarray(totalHeaderLength, packetLength);
       socket.buffer = socket.buffer.subarray(packetLength);
 
-      console.log(`PACKETLENGTH : ${packetLength}`);
-      console.log(`VERSION : ${version}`);
-      console.log(`SEQUENCE : ${sequence}`);
+      // console.log(`PACKETLENGTH : ${packetLength}`);
+      // console.log(`VERSION : ${version}`);
+      // console.log(`SEQUENCE : ${sequence}`);
       console.log(`PAYLOAD: ${payload}`);
 
       try {

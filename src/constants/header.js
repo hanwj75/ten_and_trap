@@ -3,7 +3,7 @@ export const VERSION_LENGTH = 1;
 export const SEQUENCE = 4;
 export const PAYLOAD_LENGTH = 4;
 
-export const packetType = {
+export const PACKET_TYPE = {
   // 회원가입 및 로그인
   REGISTER_REQUEST: 1,
   REGISTER_RESPONSE: 2,

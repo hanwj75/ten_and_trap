@@ -1,9 +1,9 @@
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { redisInit } from '../../init/initData.js';
 import { addGold, addRankPoint } from '../../db/user/user.db.js';
 import { WinType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
-import { getAllUser, getUserBySocket, modifyUserData, getUserById } from '../../sessions/user.session.js';
+import { modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 
 export const gameEndNotification = async (socket, roomId) => {
@@ -23,7 +23,7 @@ export const gameEndNotification = async (socket, roomId) => {
 
     const notification = { gameEndNotification: { winners, winType: WinType.values.PSYCHOPATH_WIN } };
 
-    sendNotificationToUsers(userData, notification, packetType.GAME_END_NOTIFICATION, 0);
+    sendNotificationToUsers(userData, notification, PACKET_TYPE.GAME_END_NOTIFICATION, 0);
 
     winners.forEach(async (user) => {
       await addGold(user);
@@ -40,8 +40,8 @@ export const gameEndNotification = async (socket, roomId) => {
     });
 
     await redis.delRedisByKey(`room:${roomId}`);
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(`게임 엔드 에러`, err);
   }
 };
 
@@ -58,7 +58,7 @@ export const gameOnEndNotification = async (roomId) => {
     const notification = { gameEndNotification: { winners, winType: WinType.values.NONE_ROLE } };
 
     // 모든 유저에게 게임 종료 알림 전송
-    sendNotificationToUsers(users, notification, packetType.GAME_END_NOTIFICATION, 0);
+    sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_END_NOTIFICATION, 0);
 
     const endUsersId = users.map((user) => {
       return user.id;
@@ -71,7 +71,7 @@ export const gameOnEndNotification = async (roomId) => {
 
     // Redis에서 방 데이터 삭제
     await redis.delRedisByKey(`room:${roomId}`);
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(`게임 onEnd 에러`, err);
   }
 };

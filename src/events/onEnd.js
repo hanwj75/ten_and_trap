@@ -1,9 +1,12 @@
 import { getUserBySocket, removeUser } from '../sessions/user.session.js';
 import { redis } from '../init/redis/redis.js';
 import { sendNotificationToUsers } from '../utils/notifications/notification.js';
-import { packetType } from '../constants/header.js';
+import { PACKET_TYPE } from '../constants/header.js';
 import { GlobalFailCode } from '../init/loadProto.js';
 import { gameOnEndNotification } from '../handler/game/gameEndHandler.js';
+import CustomError from '../utils/error/customError.js';
+import { ErrorCodes } from '../utils/error/errorCodes.js';
+import { handleError } from '../utils/error/errorHandler.js';
 
 export const onEnd = (socket) => async () => {
   try {
@@ -16,18 +19,18 @@ export const onEnd = (socket) => async () => {
     const user = await getUserBySocket(socket);
     const currentUserId = user.id;
     //현재 나가려하는 방의 키값
-    const leaveRoomKey = await redis.getRoomByUserId(`user:${currentUserId}`, `joinRoom`);
+    const leaveRoomKey = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
     //나가는 유저의 정보
-    const leaveUserInfo = await redis.getRoomByUserId(`room:${leaveRoomKey}`, `users`);
+    const leaveUserInfo = await redis.getRedisToHash(`room:${leaveRoomKey}`, `users`);
     //해당 방의 방장
-    const ownerId = await redis.getRoomByUserId(`room:${leaveRoomKey}`, `ownerId`);
+    const ownerId = await redis.getRedisToHash(`room:${leaveRoomKey}`, `ownerId`);
 
     const users = JSON.parse(leaveUserInfo);
 
     if (user) {
       await removeUser(socket);
     } else if (!user) {
-      console.error(`존재하지 않는 유저입니다.`);
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
 
     // 현재 유저의 socket.id에 해당하는 객체의 인덱스를 찾음
@@ -38,13 +41,14 @@ export const onEnd = (socket) => async () => {
         const roomOwnerId = removeUser.id === Number(ownerId);
 
         const notification = { leaveRoomNotification: { userId: removeUser.id } };
-        sendNotificationToUsers(users, notification, packetType.LEAVE_ROOM_NOTIFICATION, 0);
+        sendNotificationToUsers(users, notification, PACKET_TYPE.LEAVE_ROOM_NOTIFICATION, 0);
 
-        await redis.updateUsersToRoom(leaveRoomKey, 'users', users);
+        await redis.updateRedisToHash(leaveRoomKey, 'users', users);
         if (roomOwnerId) {
           await gameOnEndNotification(leaveRoomKey);
+
           const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-          sendNotificationToUsers(users, roomPayload, packetType.LEAVE_ROOM_RESPONSE, 0);
+          sendNotificationToUsers(users, roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0);
 
           // Redis에서 방 데이터 삭제
           await redis.delRedisByKey(`room:${leaveRoomKey}`);
@@ -56,5 +60,6 @@ export const onEnd = (socket) => async () => {
     }
   } catch (err) {
     console.error(`END에러`, err);
+    handleError(socket, err);
   }
 };
