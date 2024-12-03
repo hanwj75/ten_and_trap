@@ -17,6 +17,9 @@ export const onEnd = (socket) => async () => {
      * @author 한우종
      */
     const user = await getUserBySocket(socket);
+    if (!user) {
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
+    }
     const currentUserId = user.id;
     //현재 나가려하는 방의 키값
     const leaveRoomKey = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
@@ -80,7 +83,7 @@ export const onEnd = (socket) => async () => {
       await redis.delRedisByKey(`user:${currentUserId}`);
     }
 
-    // await removeUser(user);
+    await removeUser(socket);
   } catch (err) {
     handleError(socket, err);
   }
