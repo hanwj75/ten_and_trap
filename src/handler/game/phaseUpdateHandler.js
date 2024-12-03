@@ -21,12 +21,9 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     }
     //phase 전환
     const phase = room.phase;
-
     const users = await JSON.parse(room.users);
-
     //차후 10장으로 변경
     const isWinner = users.findIndex((user) => user.character.handCardsCount > 5);
-
     if (phase === '3') {
       console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateRedisToHash(room.id, `phase`, 1);
@@ -56,14 +53,12 @@ export const button = async (socket) => {
   try {
     const user = await getUserBySocket(socket);
     const currentUserId = user.id;
-
     if (!user) {
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 사용자 입니다.`);
     }
 
     const roomId = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
     const isPushed = await redis.getAllFieldsFromHash(`room:${roomId}`, `isPushed`);
-
     if (!roomId) {
       throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `사용자가 참여 중인 방을 찾을 수 없습니다.`);
     }
@@ -78,11 +73,10 @@ export const button = async (socket) => {
 };
 export const startCustomInterval = async (socket, roomId) => {
   try {
-    const intervals = [500000, 5000];
+    const intervals = [5000, 5000];
     let currentIndex = 0;
     const runInterval = async () => {
       const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
-
       if (!room) {
         throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `방 정보를 찾을 수 없습니다.`);
       }

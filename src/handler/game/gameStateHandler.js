@@ -142,10 +142,8 @@ export const gameStartHandler = async (socket, payload) => {
       await redis.updateRedisToHash(currenUserRoomId, `state`, 2);
     }
     const currentPhase = PhaseType.values.DAY;
-    const countTime = Date.now() + 500000;
+    const countTime = Date.now() + 5000;
     const newState = new GameState(currentPhase, countTime);
-    //페이즈 업데이트 실행
-    await button(socket);
 
     //게임 시작 notification
     const notification = { gameStartNotification: { gameState: newState, users: users, characterPositions: positionData } };
@@ -153,6 +151,8 @@ export const gameStartHandler = async (socket, payload) => {
 
     const gamePayload = { gameStartResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
     socket.write(createResponse(gamePayload, PACKET_TYPE.GAME_START_RESPONSE, 0));
+    //페이즈 업데이트 실행
+    await button(socket);
   } catch (err) {
     handleError(socket, err);
   }
