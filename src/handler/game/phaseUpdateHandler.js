@@ -22,6 +22,8 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     //phase 전환
     const phase = room.phase;
     const users = await JSON.parse(room.users);
+    const curTagger = room.tagger;
+    const nextTagger = getNextTaggerId(users, curTagger);
     //차후 10장으로 변경
     const isWinner = users.findIndex((user) => user.character.handCardsCount > 5);
     if (phase === '3') {
@@ -34,10 +36,12 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     } else if (phase === '1') {
       console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateRedisToHash(room.id, `phase`, 3);
+      await redis.updateRedisToHash(room.id, `tagger`, nextTagger); // 술래 변경 저장
     }
     const phaseType = phase === '3' ? '1' : '3';
     let nextPhaseAt = Date.now() + nextState;
-    const notification = { phaseUpdateNotification: { phaseType, nextPhaseAt, CharacterPosition } };
+    const tagger = phaseType === '1' ? -1 : nextTagger; // 밤이 되면 술래 변경
+    const notification = { phaseUpdateNotification: { phaseType, nextPhaseAt, CharacterPosition, tagger } };
     sendNotificationToUsers(users, notification, PACKET_TYPE.PHASE_UPDATE_NOTIFITION, 0);
   } catch (err) {
     handleError(socket, err);
@@ -97,4 +101,9 @@ export const startCustomInterval = async (socket, roomId) => {
   } catch (err) {
     handleError(socket, err);
   }
+};
+
+const getNextTaggerId = (users, curTagger) => {
+  const index = users.findIndex((user) => user.id === Number(curTagger));
+  return index !== -1 ? users[(index + 1) % users.length].id : null;
 };

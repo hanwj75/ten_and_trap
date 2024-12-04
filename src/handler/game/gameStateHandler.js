@@ -145,8 +145,11 @@ export const gameStartHandler = async (socket, payload) => {
     const countTime = Date.now() + 5000;
     const newState = new GameState(currentPhase, countTime);
 
+    const tagger = currenRoomData.ownerId;
     //게임 시작 notification
-    const notification = { gameStartNotification: { gameState: newState, users: users, characterPositions: positionData } };
+    const notification = {
+      gameStartNotification: { gameState: newState, users: users, characterPositions: positionData, tagger: tagger },
+    };
     sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_START_NOTIFICATION, 0);
 
     const gamePayload = { gameStartResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
