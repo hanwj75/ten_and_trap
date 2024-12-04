@@ -43,7 +43,7 @@ export const createRoomHandler = async (socket, payload) => {
         throw new CustomError(ErrorCodes.CREATE_ROOM_FAILED, `이미 방을 소유하고 있습니다.`);
       }
     }
-    const newRoom = new Room(roomId, user.id, name, maxUserNum, 0, [userInfo]);
+    const newRoom = new Room(roomId, user.id, name, maxUserNum, 0, [userInfo], user.id);
     roomId++;
 
     //redis에 방 정보 저장
@@ -56,6 +56,7 @@ export const createRoomHandler = async (socket, payload) => {
       users: JSON.stringify(newRoom.users),
       isPushed: newRoom.isPushed,
       phase: newRoom.phase,
+      tagger: newRoom.tagger,
     });
 
     const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
