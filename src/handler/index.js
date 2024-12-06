@@ -11,6 +11,7 @@ import { joinRoomHandler } from './room/joinRoomHandler.js';
 import { joinRandomRoomHandler } from './room/randomMatchHandler.js';
 import { leaveRoomHandler } from './room/leaveRoomHandler.js';
 import { reactionHandler } from './card/reactionHandler.js';
+import { destroyCardHandler } from './card/destroyCardHandler.js';
 const testFunction = () => {
   console.log(`이거 지우고 넣으시면 됩니다.`);
 };
@@ -65,6 +66,9 @@ const handlers = {
     handler: reactionHandler,
   },
 
+  [PACKET_TYPE.DESTROY_CARD_REQUEST]: {
+    handler: destroyCardHandler,
+  },
   //유저 정보 업데이트
   [PACKET_TYPE.USER_UPDATE_NOTIFICATION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
