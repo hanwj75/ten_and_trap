@@ -12,8 +12,8 @@ import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { handleError } from '../../utils/error/errorHandler.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
+import { drawCard } from './drawCard.js';
 import { gameEndNotification } from './gameEndHandler.js';
-
 export const phaseUpdateHandler = async (socket, room, nextState) => {
   try {
     if (!room || !nextState) {
@@ -25,7 +25,7 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     const curTagger = room.tagger;
     const nextTagger = getNextTaggerId(users, curTagger);
     //차후 10장으로 변경
-    const isWinner = users.findIndex((user) => user.character.handCardsCount > 5);
+    const isWinner = users.findIndex((user) => user.character.handCardsCount == 10);
     if (phase === '3') {
       console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateRedisToHash(room.id, `phase`, 1);
@@ -35,12 +35,13 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
       }
     } else if (phase === '1') {
       console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      await drawCard(nextTagger, room);
       await redis.updateRedisToHash(room.id, `phase`, 3);
       await redis.updateRedisToHash(room.id, `tagger`, nextTagger); // 술래 변경 저장
     }
     const phaseType = phase === '3' ? '1' : '3';
     let nextPhaseAt = Date.now() + nextState;
-    const tagger = phaseType === '1' ? -1 : nextTagger; // 밤이 되면 술래 변경
+    const tagger = phaseType === '1' ? curTagger : nextTagger; // 밤이 되면 술래 변경
     const notification = { phaseUpdateNotification: { phaseType, nextPhaseAt, CharacterPosition, tagger } };
     sendNotificationToUsers(users, notification, PACKET_TYPE.PHASE_UPDATE_NOTIFITION, 0);
   } catch (err) {
