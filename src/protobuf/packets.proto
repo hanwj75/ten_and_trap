@@ -205,6 +205,14 @@ message S2CReactionResponse {
     GlobalFailCode failCode = 2;
 }
 
+message C2SDestroyCardRequest {
+    repeated CardData destroyCards = 1;
+}
+
+message S2CDestroyCardResponse {
+    repeated CardData handCards = 1;
+}
+
 message S2CGameWinNotification {
     int32 ranking = 1;
     string winner = 2;
@@ -312,6 +320,9 @@ C2SReactionRequest reactionRequest = 35;
 
 S2CReactionResponse reactionResponse = 36;
 
+C2SDestroyCardRequest destroyCardRequest = 37;
+
+S2CDestroyCardResponse destroyCardResponse = 38;
 
 //게임 종료
 S2CGameWinNotification gameWinNotification = 46;
