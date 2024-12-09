@@ -8,18 +8,21 @@ import CustomError from '../utils/error/customError.js';
 import { ErrorCodes } from '../utils/error/errorCodes.js';
 import { handleError } from '../utils/error/errorHandler.js';
 
+/**
+ * @desc 클라이언트 종료시 방 나가기 OR 데이터 삭제
+ * @author 한우종
+ */
 export const onEnd = (socket) => async () => {
   try {
     console.log('클라이언트 연결이 종료되었습니다.');
     const failCode = GlobalFailCode.values;
-    /**
-     * @desc 클라이언트 종료시 방 나가기 OR 데이터 삭제
-     * @author 한우종
-     */
     const user = await getUserBySocket(socket);
-    if (!user) {
+    if (user) {
+      await removeUser(socket);
+    } else if (!user) {
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
+
     const currentUserId = user.id;
     //현재 나가려하는 방의 키값
     const leaveRoomKey = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
@@ -32,58 +35,55 @@ export const onEnd = (socket) => async () => {
 
     const users = JSON.parse(leaveUserInfo);
 
-    // if (!user) {
-    //   throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
-    // }
+    if (users) {
+      // 현재 유저의 socket.id에 해당하는 객체의 인덱스를 찾음
+      const userIndex = users.findIndex((user) => user.id === currentUserId);
+      if (userIndex !== -1) {
+        const removedUser = users.splice(userIndex, 1)[0];
+        const roomOwnerId = removedUser.id === Number(ownerId);
+        if (roomData.state === '2' && removedUser.character.hp > 0) {
+          // 종료한 유저의 HP를 0으로 설정
+          removedUser.character.hp = 0;
 
-    // 현재 유저의 socket.id에 해당하는 객체의 인덱스를 찾음
+          users.push(removedUser);
+          // Redis에 사용자 목록을 업데이트
+          await redis.updateRedisToHash(leaveRoomKey, 'users', users);
 
-    const userIndex = users.findIndex((user) => user.id === currentUserId);
-    if (userIndex !== -1) {
-      const removedUser = users.splice(userIndex, 1)[0];
-      const roomOwnerId = removedUser.id === Number(ownerId);
-      if (roomData.state === '2' && removedUser.character.hp > 0) {
-        // 종료한 유저의 HP를 0으로 설정
-        removedUser.character.hp = 0;
+          // Redis에서 갱신된 데이터를 다시 로드
+          const updatedUsers = JSON.parse(await redis.getRedisToHash(`room:${leaveRoomKey}`, 'users'));
 
-        users.push(removedUser);
-        // Redis에 사용자 목록을 업데이트
-        await redis.updateRedisToHash(leaveRoomKey, 'users', users); // 중복된 JSON.stringify 제거
+          // 체력 업데이트 알림 전송
+          const userNotification = { userUpdateNotification: { user: updatedUsers } }; // 모든 유저 정보 포함
+          sendNotificationToUsers(updatedUsers, userNotification, PACKET_TYPE.USER_UPDATE_NOTIFICATION, 0);
 
-        // Redis에서 갱신된 데이터를 다시 로드
-        const updatedUsers = JSON.parse(await redis.getRedisToHash(`room:${leaveRoomKey}`, 'users'));
+          // 나간 유저를 배열에서 제거
+          const updatedUserIndex = users.findIndex((user) => user.id === removedUser.id);
+          if (updatedUserIndex !== -1) {
+            await users.splice(updatedUserIndex, 1); // 나간 유저를 배열에서 제거
+          }
 
-        // 체력 업데이트 알림 전송
-        const userNotification = { userUpdateNotification: { user: updatedUsers } }; // 모든 유저 정보 포함
-        sendNotificationToUsers(updatedUsers, userNotification, PACKET_TYPE.USER_UPDATE_NOTIFICATION, 0);
-
-        // 나간 유저를 배열에서 제거
-        const updatedUserIndex = users.findIndex((user) => user.id === removedUser.id);
-        if (updatedUserIndex !== -1) {
-          await users.splice(updatedUserIndex, 1); // 나간 유저를 배열에서 제거
+          // Redis에 최종 업데이트
+          await redis.updateRedisToHash(leaveRoomKey, 'users', users);
         }
+        const notification = { leaveRoomNotification: { userId: removedUser.id } };
+        sendNotificationToUsers(users, notification, PACKET_TYPE.LEAVE_ROOM_NOTIFICATION, 0);
 
-        // Redis에 최종 업데이트
-        await redis.updateRedisToHash(leaveRoomKey, 'users', users); // 중복된 JSON.stringify 제거
-      }
-      const notification = { leaveRoomNotification: { userId: removedUser.id } };
-      sendNotificationToUsers(users, notification, PACKET_TYPE.LEAVE_ROOM_NOTIFICATION, 0);
+        // await redis.updateRedisToHash(leaveRoomKey, 'users', users);
+        if (roomOwnerId) {
+          const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
+          sendNotificationToUsers(users, roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0);
 
-      // await redis.updateRedisToHash(leaveRoomKey, 'users', users);
-      if (roomOwnerId) {
-        const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
-        sendNotificationToUsers(users, roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0);
-
-        if (roomData.state === '2') {
-          await gameOnEndNotification(leaveRoomKey);
+          if (roomData.state === '2') {
+            await gameOnEndNotification(leaveRoomKey);
+          }
+          // Redis에서 방 데이터 삭제
+          await redis.delRedisByKey(`room:${leaveRoomKey}`);
         }
-        // Redis에서 방 데이터 삭제
-        await redis.delRedisByKey(`room:${leaveRoomKey}`);
+        await redis.delRedisByKey(`user:${currentUserId}`);
       }
+    } else {
       await redis.delRedisByKey(`user:${currentUserId}`);
     }
-
-    await removeUser(socket);
   } catch (err) {
     handleError(socket, err);
   }
