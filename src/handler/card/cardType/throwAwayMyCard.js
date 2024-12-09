@@ -1,3 +1,4 @@
+import { handleError } from '../../../utils/error/errorHandler.js';
 /**
  * @dest 버리기 카드 사용
  * @author 박건순
