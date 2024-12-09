@@ -16,7 +16,7 @@ export const gameEndNotification = async (socket, roomId) => {
 
     userData.forEach((user) => {
       //차후 10장으로 변경
-      if (+user.character.handCardsCount > 5) {
+      if (+user.character.handCardsCount == 10) {
         winners.push(user.id);
       }
     });
