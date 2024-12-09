@@ -17,9 +17,8 @@ export const onEnd = (socket) => async () => {
     console.log('클라이언트 연결이 종료되었습니다.');
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
-    if (user) {
-      await removeUser(socket);
-    } else if (!user) {
+
+    if (!user) {
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
 
@@ -80,9 +79,11 @@ export const onEnd = (socket) => async () => {
           await redis.delRedisByKey(`room:${leaveRoomKey}`);
         }
         await redis.delRedisByKey(`user:${currentUserId}`);
+        await removeUser(socket);
       }
     } else {
       await redis.delRedisByKey(`user:${currentUserId}`);
+      await removeUser(socket);
     }
   } catch (err) {
     handleError(socket, err);
