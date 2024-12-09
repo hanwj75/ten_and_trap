@@ -150,6 +150,7 @@ message S2CGameStartNotification {
     GameStateData gameState = 1;
     repeated UserData users = 2;
     repeated CharacterPositionData characterPositions = 3;
+    int64 tagger = 4;
 }
 
 message C2SPositionUpdateRequest {
@@ -191,6 +192,7 @@ message S2CPhaseUpdateNotification {
     PhaseType phaseType = 1; // DAY 1, EVENING 2, END 3
     int64 nextPhaseAt = 2; // 다음 페이즈 시작 시점(밀리초 타임스탬프)
     repeated CharacterPositionData characterPositions = 3; // 변경된 캐릭터 위치
+    int64 tagger = 4;
 }
 
 
@@ -201,6 +203,14 @@ message C2SReactionRequest {
 message S2CReactionResponse {
     bool success = 1;
     GlobalFailCode failCode = 2;
+}
+
+message C2SDestroyCardRequest {
+    repeated CardData destroyCards = 1;
+}
+
+message S2CDestroyCardResponse {
+    repeated CardData handCards = 1;
 }
 
 message S2CGameWinNotification {
@@ -310,6 +320,9 @@ C2SReactionRequest reactionRequest = 35;
 
 S2CReactionResponse reactionResponse = 36;
 
+C2SDestroyCardRequest destroyCardRequest = 37;
+
+S2CDestroyCardResponse destroyCardResponse = 38;
 
 //게임 종료
 S2CGameWinNotification gameWinNotification = 46;
@@ -421,5 +434,10 @@ enum RoomStateType {
     WAIT = 0;
     PREPARE = 1;
     INGAME = 2;
+}
+
+enum ReactionType {
+    NONE_REACTION = 0;
+    NOT_USE_CARD = 1;
 }
 

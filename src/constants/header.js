@@ -3,7 +3,7 @@ export const VERSION_LENGTH = 1;
 export const SEQUENCE = 4;
 export const PAYLOAD_LENGTH = 4;
 
-export const packetType = {
+export const PACKET_TYPE = {
   // 회원가입 및 로그인
   REGISTER_REQUEST: 1,
   REGISTER_RESPONSE: 2,
@@ -52,6 +52,8 @@ export const packetType = {
   REACTION_REQUEST: 35,
   REACTION_RESPONSE: 36,
 
+  DESTROY_CARD_REQUEST: 37,
+  DESTROY_CARD_RESPONSE: 38,
   // 게임 우승 알림
   GAME_WIN_NOTIFICATION: 46,
 

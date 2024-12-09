@@ -44,3 +44,10 @@ export const updataData = {
     handCardsCount: 4,
   },
 };
+
+export const stateInitData = {
+  state: 0,
+  nextState: 0,
+  nextStateAt: 0,
+  stateTargetUserId: 0,
+};
