@@ -53,3 +53,5 @@ export const destroyCardHandler = async (socket, payload) => {
     console.error(`destroyCard 에러`, err);
   }
 };
+
+export const destroyCardRandomHandler = async (socket, payload) => {};

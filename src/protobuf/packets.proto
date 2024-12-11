@@ -213,15 +213,9 @@ message S2CDestroyCardResponse {
     repeated CardData handCards = 1;
 }
 
-message S2CGameWinNotification {
-    int32 ranking = 1;
-    string winner = 2;
-}
+message C2SDestroyCardRandomRequest {
 
-// message S2CGameEndNotification {
-//     string loser = 1;
-//     string winner = 2;
-// }
+}
 
 message S2CGameEndNotification {
     repeated int64 winners = 1;
@@ -247,7 +241,7 @@ message GamePacket {
 
 //  로그인 , 회원가입
 C2SRegisterRequest registerRequest= 1;
-     
+
 S2CRegisterResponse registerResponse=2;
 
 C2SLoginRequest loginRequest= 3;
@@ -324,11 +318,9 @@ C2SDestroyCardRequest destroyCardRequest = 37;
 
 S2CDestroyCardResponse destroyCardResponse = 38;
 
-//게임 종료
-S2CGameWinNotification gameWinNotification = 46;
-
 S2CGameEndNotification gameEndNotification =39;
 
+C2SDestroyCardRandomRequest destroyCardRandomRequest = 46;
 
     }
 }
