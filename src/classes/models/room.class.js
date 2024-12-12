@@ -1,5 +1,5 @@
 class Room {
-  constructor(id, ownerId, name, maxUserNum, state, users) {
+  constructor(id, ownerId, name, maxUserNum, state, users, tagger) {
     this.id = id;
     this.ownerId = ownerId; //방장인듯
     this.name = name; //방제목
@@ -8,6 +8,7 @@ class Room {
     this.users = users; //방에 들어온 유저 정보인듯
     this.isPushed = true;
     this.phase = 1;
+    this.tagger = tagger; // 술래
   }
 }
 

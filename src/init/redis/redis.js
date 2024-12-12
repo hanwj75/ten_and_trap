@@ -43,11 +43,11 @@ export const redis = {
     return await redisClient.hset(key, ...Object.entries(val).flat());
   },
 
-  setRoomByUserId: async (key, field, val) => {
+  setRedisToHash: async (key, field, val) => {
     return await redisClient.hset(key, field, val);
   },
   // 방에 방장 찾기
-  getRoomByUserId: async (key, val) => {
+  getRedisToHash: async (key, val) => {
     // 방 정보가 해시로 저장되어 있는지 확인
     const roomValue = await redisClient.hget(key, val);
 
@@ -60,14 +60,14 @@ export const redis = {
   },
 
   // 방의 사용자 목록을 Redis에 저장하는 함수
-  updateUsersToRoom: async (key, fiedl, val) => {
+  updateRedisToHash: async (key, fiedl, val) => {
     // Redis에 사용자 목록 저장
     await redisClient.hset(`room:${key}`, fiedl, JSON.stringify(val));
     console.log(`사용자 목록이 방 ${key}에 저장되었습니다.`);
   },
 
   // 방에 해당하는 모든 키 가져오기
-  getRoomKeys: async (pattern) => {
+  getRedisToKeys: async (pattern) => {
     const keys = [];
     let cursor = '0'; // SCAN의 커서 초기값
 
@@ -85,7 +85,7 @@ export const redis = {
   },
 
   // 필드 값으로 키 찾기
-  findRoomKeyToField: async (keys, field, fieldvalue) => {
+  findRedisKeyToField: async (keys, field, fieldvalue) => {
     for (const key of keys) {
       const value = await redisClient.hget(key, field);
       if (value == fieldvalue) {
@@ -136,7 +136,7 @@ export const redis = {
       console.error(err);
     }
   },
-  allDateDel: async () => {
+  allRedisDateDel: async () => {
     await redisClient.flushall();
   },
 };
