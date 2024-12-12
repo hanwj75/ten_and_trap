@@ -23,6 +23,7 @@ export const onEnd = (socket) => async () => {
     }
 
     const currentUserId = user.id;
+    await removeUser(socket);
     //현재 나가려하는 방의 키값
     const leaveRoomKey = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
     //나가는 유저의 정보
