@@ -142,7 +142,7 @@ export const gameStartHandler = async (socket, payload) => {
       await redis.updateRedisToHash(currenUserRoomId, `state`, 2);
     }
     const currentPhase = PhaseType.values.DAY;
-    const countTime = Date.now() + 5000;
+    const countTime = Date.now() + 30000;
     const newState = new GameState(currentPhase, countTime);
 
     const tagger = currenRoomData.ownerId;

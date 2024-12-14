@@ -17,7 +17,7 @@ import { gameEndNotification } from './gameEndHandler.js';
 
 let curInterval;
 let currentIndex = 0;
-const intervals = [5000, 5000];
+const intervals = [30000, 10000];
 
 export const phaseUpdateHandler = async (socket, room, nextState) => {
   try {
