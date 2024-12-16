@@ -30,7 +30,6 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     const curTagger = room.tagger;
     const nextTagger = getNextTaggerId(users, curTagger);
 
-    console.log('test:' + phase);
     //차후 10장으로 변경
     const isWinner = users.findIndex((user) => user.character.handCardsCount == 10);
     if (phase === '3') {
@@ -124,7 +123,6 @@ export const phaseChangeHandler = async (socket) => {
   }
 
   const roomId = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
-  console.log('hi');
   clearTimeout(curInterval);
   try {
     runInterval(socket, roomId);
