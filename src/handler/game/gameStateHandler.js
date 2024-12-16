@@ -58,6 +58,8 @@ export const gamePrepareHandler = async (socket, payload) => {
       { type: 3, count: 1 },
       { type: 4, count: 1 },
       { type: 5, count: 1 },
+      { type: 6, count: 1 },
+      { type: 7, count: 1 },
     ];
 
     //방 상태 업데이트
@@ -142,7 +144,7 @@ export const gameStartHandler = async (socket, payload) => {
       await redis.updateRedisToHash(currenUserRoomId, `state`, 2);
     }
     const currentPhase = PhaseType.values.DAY;
-    const countTime = Date.now() + 5000;
+    const countTime = Date.now() + 30000;
     const newState = new GameState(currentPhase, countTime);
 
     const tagger = currenRoomData.ownerId;

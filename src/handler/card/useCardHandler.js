@@ -12,7 +12,8 @@ import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { handleError } from '../../utils/error/errorHandler.js';
 import { invalidCard } from './cardType/invalidCard.js';
-
+import { throwAwayYourAllCard } from './cardType/throwAwayYourAllCard.js';
+import { throwAwayAll } from './cardType/throwAwayAll.js';
 /**
  * @dest 카드 사용 요구
  * @author 박건순
@@ -83,14 +84,18 @@ export const useCardHandler = async (socket, payload) => {
         break;
       case 3:
         invalidCard(userData, opponent, roomData);
-        // const animationNotification = { animationNotification: { userId: userData.id, animationType: 3 } };
-        // sendNotificationToUsers(roomData.users, animationNotification, 45, 0);
         break;
       case 4:
-        throwAwayYourCard(opponent, roomData);
+        throwAwayYourCard(userData, opponent, roomData);
         break;
       case 5:
         throwAwayMyCard(userData);
+        break;
+      case 6:
+        throwAwayYourAllCard(userData, opponent, roomData);
+        break;
+      case 7:
+        throwAwayAll(userData, roomData);
         break;
       default:
         const cardPayload = { success: false, failCode: failCode.CHARACTER_NO_CARD };
