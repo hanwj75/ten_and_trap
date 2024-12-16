@@ -52,8 +52,6 @@ export const joinRoomHandler = async (socket, payload) => {
     const newUserInfo = { id: user.id, nickname: user.nickName, character: characterInitData };
     const notification = { joinRoomNotification: { joinUser: newUserInfo } };
 
-    console.log('roomData.users test : ', roomData.users);
-
     sendNotificationToUsers(roomData.users, notification, PACKET_TYPE.JOIN_ROOM_NOTIFICATION, 0);
 
     if (roomData.users.length >= roomData.maxUserNum) {

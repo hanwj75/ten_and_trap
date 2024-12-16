@@ -36,7 +36,6 @@ export const loginHandler = async (socket, payload) => {
     // 이쪽서버 세션에 추가가 필요
     const totalToken = `Bearer ${redis.getRedis(email)}`;
     const userInfoToResponse = await redis.getAllFieldsFromHash(`user:${email}`);
-    console.log('test 1 : ', typeof userInfoToResponse, userInfoToResponse);
     await redis.delRedisByKey(`aaa${email}`);
     await redis.delRedisByKey(`user:${email}`);
     return makeResponse(socket, true, 'Login Success', totalToken, userInfoToResponse, GlobalFailCode.values.NONE_FAILCODE);
