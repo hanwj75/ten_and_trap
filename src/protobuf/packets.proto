@@ -195,6 +195,9 @@ message S2CPhaseUpdateNotification {
     int64 tagger = 4;
 }
 
+message C2SPhaseChangeRequest {
+
+}
 
 message C2SReactionRequest {
     ReactionType reactionType = 1; // NOT_USE_CARD = 1
@@ -322,6 +325,7 @@ S2CGameEndNotification gameEndNotification =39;
 
 C2SDestroyCardRandomRequest destroyCardRandomRequest = 46;
 
+C2SPhaseChangeRequest phaseChangeRequest = 47;
     }
 }
 

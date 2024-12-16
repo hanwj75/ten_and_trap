@@ -12,6 +12,7 @@ import { joinRandomRoomHandler } from './room/randomMatchHandler.js';
 import { leaveRoomHandler } from './room/leaveRoomHandler.js';
 import { reactionHandler } from './card/reactionHandler.js';
 import { destroyCardHandler, destroyCardRandomHandler } from './card/destroyCardHandler.js';
+import { phaseChangeHandler } from './game/phaseUpdateHandler.js';
 const testFunction = () => {
   console.log(`이거 지우고 넣으시면 됩니다.`);
 };
@@ -80,6 +81,10 @@ const handlers = {
   // 페이즈 업데이트
   [PACKET_TYPE.PHASE_UPDATE_NOTIFITION]: {
     handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
+  },
+
+  [PACKET_TYPE.PHASE_CHANGE_REQUEST]: {
+    handler: phaseChangeHandler,
   },
 
   // 게임 종료 알림
