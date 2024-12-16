@@ -2,12 +2,12 @@ import { CharacterStateType } from '../../../init/loadProto.js';
 import { redis } from '../../../init/redis/redis.js';
 import { handleError } from '../../../utils/error/errorHandler.js';
 /**
- * @dest 상대방버리기 카드 사용
+ * @dest 상대방 모든 카드 버리기 사용
  * @author 박건순
  *
  */
 
-export const throwAwayYourCard = async (userData, opponentData, roomData) => {
+export const throwAwayYourAllCard = async (userData, opponentData, roomData) => {
   try {
     if (!userData || !opponentData || !roomData) {
       throw new CustomError(ErrorCodes.INVALID_REQUEST, `유효하지 않은 유저 데이터 또는 방 데이터 입니다.`);
@@ -25,28 +25,20 @@ export const throwAwayYourCard = async (userData, opponentData, roomData) => {
       stateTargetUserId: opponent.id,
     };
     const targetState = {
-      state: CharacterStateType.values.THROW_AWAY_TARGET,
+      state: CharacterStateType.values.THROW_AWAY_ALL_TARGET,
       nextState: 0,
       nextStateAt: 1000,
       stateTargetUserId: user.id,
     };
     user.stateInfo = shooterState;
 
-    // 무효 있는지 없는지 체크
     const existShield = opponentHand.find((card) => card.type === 3);
     if (existShield) {
       //실드 있다면 나중에 reactionHandler에서 적용
       console.log('i have shield');
     } else {
-      const randomIndex = Math.floor(Math.random() * opponentCount);
-
-      if (opponentHand[randomIndex]) {
-        opponentHand[randomIndex].count--;
-        if (opponentHand[randomIndex].count <= 0) {
-          opponentHand.splice(randomIndex, 1);
-        }
-        opponentCount--;
-      }
+      opponentHand = [];
+      opponentCount = 0;
     }
 
     // redis에 상대 유저 정보 업데이트

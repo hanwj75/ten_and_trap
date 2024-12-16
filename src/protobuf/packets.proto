@@ -369,8 +369,8 @@ enum CharacterStateType {
     DEATH_MATCH_TURN_STATE = 4; // 현피 중 자신의 턴
     FLEA_MARKET_TURN = 5; // 플리마켓 자신의 턴
     FLEA_MARKET_WAIT = 6; // 플리마켓 턴 대기 상태
-    GUERRILLA_SHOOTER = 7; // 게릴라 시전자
-    GUERRILLA_TARGET = 8; // 게릴라 대상
+    GUERRILLA_SHOOTER = 7; // 다 버려 시전자
+    GUERRILLA_TARGET = 8; // 다 버려 대상
     BIG_BBANG_SHOOTER = 9; // 난사 시전자
     BIG_BBANG_TARGET = 10; // 난사 대상
     ABSORBING = 11; // 흡수 중
@@ -378,6 +378,8 @@ enum CharacterStateType {
     HALLUCINATING = 13; // 신기루 중
     HALLUCINATION_TARGET = 14; // 신기루 대상
     CONTAINED = 15; // 감금 중
+    THROW_AWAY_TARGET = 16; // 버려 대상
+    THROW_AWAY_ALL_TARGET = 17; // 다 버려 대상
 }
 
 enum CardType {
