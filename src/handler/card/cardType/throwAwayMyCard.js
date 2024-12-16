@@ -4,6 +4,8 @@
  *
  */
 
+import { handleError } from '../../../utils/error/errorHandler.js';
+
 export const throwAwayMyCard = async (userData) => {
   try {
     const user = userData;
