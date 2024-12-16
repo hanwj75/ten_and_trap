@@ -99,38 +99,14 @@ const runInterval = async (socket, roomId) => {
   // 다음 인터벌 설정
   currentIndex = (currentIndex + 1) % intervals.length;
   const nextState = intervals[currentIndex];
-  phaseUpdateHandler(socket, room, nextState);
+  await phaseQueue.add({ socket, room, nextState });
+
   curInterval = setTimeout(() => runInterval(socket, roomId), nextState);
 };
 
 export const startCustomInterval = async (socket, roomId) => {
   try {
-<<<<<<< HEAD
-    const intervals = [5000, 5000];
-    let currentIndex = 0;
-    const runInterval = async () => {
-      const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
-      if (!room) {
-        throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `방 정보를 찾을 수 없습니다.`);
-      }
-      const users = room.users ? JSON.parse(room.users) : [];
-      // 유저가 없으면 인터벌 중지
-      if (users.length === 0) {
-        console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
-        return;
-      }
-
-      // 다음 인터벌 설정
-      currentIndex = (currentIndex + 1) % intervals.length;
-      const nextState = intervals[currentIndex];
-      // phaseUpdateHandler(socket, room, nextState); === 기존 code
-      await phaseQueue.add({ socket, room, nextState });
-      setTimeout(runInterval, nextState);
-    };
-    setTimeout(runInterval, intervals[currentIndex]);
-=======
     curInterval = setTimeout(() => runInterval(socket, roomId), intervals[currentIndex]);
->>>>>>> dev
   } catch (err) {
     handleError(socket, err);
   }
