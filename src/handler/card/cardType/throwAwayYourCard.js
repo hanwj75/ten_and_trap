@@ -1,5 +1,5 @@
 import { redis } from '../../../init/redis/redis.js';
-
+import { handleError } from '../../../utils/error/errorHandler.js';
 /**
  * @dest 상대방버리기 카드 사용
  * @author 박건순

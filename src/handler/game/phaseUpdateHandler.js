@@ -15,6 +15,11 @@ import { handleError } from '../../utils/error/errorHandler.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { drawCard } from './drawCard.js';
 import { gameEndNotification } from './gameEndHandler.js';
+
+let curInterval;
+let currentIndex = 0;
+const intervals = [30000, 10000];
+
 export const phaseUpdateHandler = async (socket, room, nextState) => {
   try {
     if (!room || !nextState) {
@@ -25,6 +30,7 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     const users = await JSON.parse(room.users);
     const curTagger = room.tagger;
     const nextTagger = getNextTaggerId(users, curTagger);
+
     //차후 10장으로 변경
     const isWinner = users.findIndex((user) => user.character.handCardsCount == 10);
     if (phase === '3') {
@@ -77,8 +83,29 @@ export const button = async (socket) => {
     handleError(socket, err);
   }
 };
+
+const runInterval = async (socket, roomId) => {
+  const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
+  if (!room) {
+    throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `방 정보를 찾을 수 없습니다.`);
+  }
+  const users = room.users ? JSON.parse(room.users) : [];
+  // 유저가 없으면 인터벌 중지
+  if (users.length === 0) {
+    console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
+    return;
+  }
+
+  // 다음 인터벌 설정
+  currentIndex = (currentIndex + 1) % intervals.length;
+  const nextState = intervals[currentIndex];
+  phaseUpdateHandler(socket, room, nextState);
+  curInterval = setTimeout(() => runInterval(socket, roomId), nextState);
+};
+
 export const startCustomInterval = async (socket, roomId) => {
   try {
+<<<<<<< HEAD
     const intervals = [5000, 5000];
     let currentIndex = 0;
     const runInterval = async () => {
@@ -101,6 +128,9 @@ export const startCustomInterval = async (socket, roomId) => {
       setTimeout(runInterval, nextState);
     };
     setTimeout(runInterval, intervals[currentIndex]);
+=======
+    curInterval = setTimeout(() => runInterval(socket, roomId), intervals[currentIndex]);
+>>>>>>> dev
   } catch (err) {
     handleError(socket, err);
   }
@@ -109,4 +139,20 @@ export const startCustomInterval = async (socket, roomId) => {
 const getNextTaggerId = (users, curTagger) => {
   const index = users.findIndex((user) => user.id === Number(curTagger));
   return index !== -1 ? users[(index + 1) % users.length].id : null;
+};
+
+export const phaseChangeHandler = async (socket) => {
+  const user = await getUserBySocket(socket);
+  const currentUserId = user.id;
+  if (!user) {
+    throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 사용자 입니다.`);
+  }
+
+  const roomId = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
+  clearTimeout(curInterval);
+  try {
+    runInterval(socket, roomId);
+  } catch (err) {
+    handleError(socket, err);
+  }
 };
