@@ -7,8 +7,6 @@ import { redis } from './init/redis/redis.js';
 import { findUserById, updateUserLogin } from './db/user/user.db.js';
 import JoiUtils from './utils/joi.util.js';
 import Character from './classes/models/character.class.js';
-import User from './classes/models/user.class.js';
-import { addUser, getAllUser } from './sessions/user.session.js';
 
 const app = express();
 const loginServerInfo = config.loginServer;
@@ -19,7 +17,7 @@ app.use(express.json());
 // **1. 로그인 요청 처리**
 app.post('/login', async (req, res) => {
   try {
-    const { email, password } = await JoiUtils.validateSignIn(req.body.testdata);
+    const { email, password } = await JoiUtils.validateSignIn(req.body.loginData);
 
     // 아이디 존재 검증
     const checkExistId = await findUserById(email);
@@ -42,7 +40,7 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ massage: '이미 접속중인 계정입니다.' });
     }
 
-    await redis.addRedisToHash(`aaa${email}`, checkExistId);
+    await redis.addRedisToHash(`loginData${email}`, checkExistId);
 
     const stateInfo = { state: 0, nextState: 0, nextStateAt: 0, stateTargetUserId: 0 };
 
@@ -89,18 +87,6 @@ app.post('/login', async (req, res) => {
     console.error(e);
   }
 });
-
-// // **2. 토큰 검증 요청 처리**
-// app.post('/verify', (req, res) => {
-//   const { token } = req.body;
-
-//   try {
-//     const decoded = jwt.verify(token, SECRET_KEY);
-//     res.json({ success: true, user: decoded });
-//   } catch (err) {
-//     res.status(401).json({ success: false, message: 'Invalid token' });
-//   }
-// });
 
 // 서버 시작
 app.listen(loginServerInfo.PORT, () => {
