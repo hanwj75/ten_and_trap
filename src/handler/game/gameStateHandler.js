@@ -60,6 +60,8 @@ export const gamePrepareHandler = async (socket, payload) => {
       { type: 3, count: 1 },
       { type: 4, count: 1 },
       { type: 5, count: 1 },
+      { type: 6, count: 1 },
+      { type: 7, count: 1 },
     ];
 
     //방 상태 업데이트
