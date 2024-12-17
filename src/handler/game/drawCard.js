@@ -5,7 +5,7 @@ export const drawCard = async (userId, roomData) => {
   try {
     const user = await redis.getAllFieldsFromHash(`user:${userId}`);
     user.handCards = JSON.parse(user.handCards);
-    const randomType = Math.floor(Math.random() * 23) + 1;
+    const randomType = Math.floor(Math.random() * 7) + 1;
     const existType = user.handCards.find((card) => card.type === randomType);
 
     if (existType) {
