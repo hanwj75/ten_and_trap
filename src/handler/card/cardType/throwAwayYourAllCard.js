@@ -15,7 +15,7 @@ export const throwAwayYourAllCard = async (userData, opponentData, roomData) => 
 
     const user = userData;
     const opponent = opponentData;
-    const opponentHand = JSON.parse(opponent.handCards);
+    let opponentHand = JSON.parse(opponent.handCards);
     let opponentCount = opponent.handCardsCount;
 
     const shooterState = {
