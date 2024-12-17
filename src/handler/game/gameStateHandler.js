@@ -106,7 +106,6 @@ export const gamePrepareHandler = async (socket, payload) => {
       newQueue.roomId = currenUserRoomId;
 
       queuesSessions.push(newQueue);
-      console.log(queuesSessions[0]);
 
       newQueue.process(async (job, done) => {
         try {
@@ -130,7 +129,7 @@ export const gamePrepareHandler = async (socket, payload) => {
       });
 
       const loadjob = `success to add queue for ${currenUserRoomId}room!`;
-      newQueue.add({ loadjob, jobType: 0 });
+      await newQueue.add({ loadjob, jobType: 0 });
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
