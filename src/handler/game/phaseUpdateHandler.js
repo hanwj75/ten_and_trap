@@ -9,6 +9,7 @@ import { PACKET_TYPE } from '../../constants/header.js';
 import { queuesSessions } from '../../init/redis/bull/bull.js';
 // import { phaseQueue } from '../../init/redis/bull/bull.js';
 import { redis } from '../../init/redis/redis.js';
+import { getGameById, modifyGameData, removeGame } from '../../sessions/game.session.js';
 import { getUserBySocket } from '../../sessions/user.session.js';
 import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
@@ -17,8 +18,6 @@ import { sendNotificationToUsers } from '../../utils/notifications/notification.
 import { drawCard } from './drawCard.js';
 import { gameEndNotification } from './gameEndHandler.js';
 
-let curInterval;
-let currentIndex = 0;
 const intervals = [30000, 10000];
 
 export const phaseUpdateHandler = async (socket, room, nextState) => {
@@ -90,29 +89,26 @@ const runInterval = async (socket, roomId) => {
   if (!room) {
     throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `방 정보를 찾을 수 없습니다.`);
   }
+  const game = await getGameById(room.id);
   const users = room.users ? JSON.parse(room.users) : [];
   // 유저가 없으면 인터벌 중지
   if (users.length === 0) {
+    await removeGame(room.id);
     console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
     return;
   }
 
   // 다음 인터벌 설정
-  currentIndex = (currentIndex + 1) % intervals.length;
-  const nextState = intervals[currentIndex];
-  await phaseUpdateHandler(socket, room, nextState);
-  // const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
-
-  // console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
-  // await currentQueue.add({ socket, room, nextState, jobType: 1 });
-  // console.log('testNextState', nextState);
-
-  curInterval = setTimeout(() => runInterval(socket, roomId), nextState);
+  game.currentIndex = (game.currentIndex + 1) % intervals.length;
+  const nextState = intervals[game.currentIndex];
+  phaseUpdateHandler(socket, room, nextState);
+  game.curInterval = setTimeout(() => runInterval(socket, roomId), nextState);
 };
 
 export const startCustomInterval = async (socket, roomId) => {
   try {
-    curInterval = setTimeout(() => runInterval(socket, roomId), intervals[currentIndex]);
+    const game = await getGameById(roomId);
+    game.curInterval = setTimeout(() => runInterval(socket, roomId), intervals[game.currentIndex]);
   } catch (err) {
     handleError(socket, err);
   }
@@ -131,10 +127,14 @@ export const phaseChangeHandler = async (socket) => {
   }
 
   const roomId = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
-  clearTimeout(curInterval);
-  try {
-    runInterval(socket, roomId);
-  } catch (err) {
-    handleError(socket, err);
+  const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
+  if (room.phase === '1') {
+    const game = await getGameById(roomId);
+    clearTimeout(game.curInterval);
+    try {
+      game.curInterval = setTimeout(() => runInterval(socket, roomId), 0);
+    } catch (err) {
+      handleError(socket, err);
+    }
   }
 };
