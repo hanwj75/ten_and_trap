@@ -98,38 +98,38 @@ export const gamePrepareHandler = async (socket, payload) => {
       sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_PREPARE_NOTIFICATION, 0);
 
       // 새로운 작업 대기열 생성성
-      const queueName = `${currenUserRoomId}room-queue`;
-      const newQueue = new Queue(queueName, queueOptions);
-      const bullAdapter = new BullAdapter(newQueue);
-      const addQueue = await getAddQueue();
-      await addQueue(bullAdapter);
-      newQueue.roomId = currenUserRoomId;
+      // const queueName = `${currenUserRoomId}room-queue`;
+      // const newQueue = new Queue(queueName, queueOptions);
+      // const bullAdapter = new BullAdapter(newQueue);
+      // const addQueue = await getAddQueue();
+      // await addQueue(bullAdapter);
+      // newQueue.roomId = currenUserRoomId;
 
-      queuesSessions.push(newQueue);
+      // queuesSessions.push(newQueue);
 
-      newQueue.process(async (job, done) => {
-        try {
-          const { jobType } = job.data;
-          console.log('jobType', jobType);
+      // newQueue.process(async (job, done) => {
+      //   try {
+      //     const { jobType } = job.data;
+      //     console.log('jobType', jobType);
 
-          if (+jobType === 0) {
-            const { loadjob } = job.data;
-            console.log(loadjob);
-            done();
-          }
+      //     if (+jobType === 0) {
+      //       const { loadjob } = job.data;
+      //       console.log(loadjob);
+      //       done();
+      //     }
 
-          if (+jobType === 1) {
-            const { socket, room, nextState } = job.data;
-            await phaseUpdateHandler(socket, room, nextState);
-            done();
-          }
-        } catch (err) {
-          throw err;
-        }
-      });
+      //     if (+jobType === 1) {
+      //       const { socket, room, nextState } = job.data;
+      //       await phaseUpdateHandler(socket, room, nextState);
+      //       done();
+      //     }
+      //   } catch (err) {
+      //     throw err;
+      //   }
+      // });
 
-      const loadjob = `success to add queue for ${currenUserRoomId}room!`;
-      await newQueue.add({ loadjob, jobType: 0 });
+      // const loadjob = `success to add queue for ${currenUserRoomId}room!`;
+      // await newQueue.add({ loadjob, jobType: 0 });
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
