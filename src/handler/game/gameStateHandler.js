@@ -4,6 +4,7 @@ import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
 import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
+import { addGame } from '../../sessions/game.session.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
@@ -11,7 +12,7 @@ import { handleError } from '../../utils/error/errorHandler.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { button } from './phaseUpdateHandler.js';
-
+import Game from '../../classes/models/game.class.js';
 /**
  * @desc 게임준비
  * @author 한우종
@@ -52,15 +53,25 @@ export const gamePrepareHandler = async (socket, payload) => {
     }
 
     // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
-    const handCards = [
-      { type: 1, count: 1 },
-      { type: 2, count: 1 },
-      { type: 3, count: 1 },
-      { type: 4, count: 1 },
-      { type: 5, count: 1 },
-      { type: 6, count: 1 },
-      { type: 7, count: 1 },
-    ];
+    const handCards = [];
+    for (let i = 0; i < 2; i++) {
+      let randomType = Math.floor(Math.random() * 7) + 1;
+      const existType = handCards.find((card) => card.type === randomType);
+      if (existType) {
+        existType.count++;
+      } else {
+        handCards.push({ type: randomType, count: 1 });
+      }
+    }
+    // const handCards = [
+    //   { type: 1, count: 1 },
+    //   { type: 2, count: 1 },
+    //   { type: 3, count: 1 },
+    //   { type: 4, count: 1 },
+    //   { type: 5, count: 1 },
+    //   { type: 6, count: 1 },
+    //   { type: 7, count: 1 },
+    // ];
 
     //방 상태 업데이트
     if (currenRoomData.state === '0') {
@@ -146,7 +157,8 @@ export const gameStartHandler = async (socket, payload) => {
     const currentPhase = PhaseType.values.DAY;
     const countTime = Date.now() + 30000;
     const newState = new GameState(currentPhase, countTime);
-
+    const game = new Game(currenUserRoomId, null, 0);
+    addGame(game);
     const tagger = currenRoomData.ownerId;
     //게임 시작 notification
     const notification = {
