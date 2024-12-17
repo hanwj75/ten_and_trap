@@ -102,6 +102,10 @@ const runInterval = async (socket, roomId) => {
   game.currentIndex = (game.currentIndex + 1) % intervals.length;
   const nextState = intervals[game.currentIndex];
   phaseUpdateHandler(socket, room, nextState);
+  const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
+  console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
+  await currentQueue.add({ socket, room, nextState, jobType: 1 });
+
   game.curInterval = setTimeout(() => runInterval(socket, roomId), nextState);
 };
 
