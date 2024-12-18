@@ -8,6 +8,11 @@ const envFiles = {
     HOST: process.env.HOST || 'localhost',
     CLIENT_VERSION: process.env.CLIENT_VERSION || '1.0.0',
   },
+  loginServer: {
+    LOGIN_PORT: process.env.LOGIN_PORT || 3336,
+    LOGIN_HOST: process.env.LOGIN_HOST || 'localhost',
+    CLIENT_VERSION: process.env.CLIENT_VERSION || '1.0.0',
+  },
   jwt: {
     // JWT KEY
     ACCESS_TOKEN_SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY,
