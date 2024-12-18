@@ -39,14 +39,16 @@ export const throwAwayAll = async (userData, roomData) => {
         //실드 있다면 나중에 reactionHandler에서 적용
         console.log('i have shield');
       } else {
-        const randomIndex = Math.floor(Math.random() * opponentCount);
+        if (opponentCount > 0) {
+          const randomIndex = Math.floor(Math.random() * opponentCount);
 
-        if (opponentHand[randomIndex]) {
-          opponentHand[randomIndex].count--;
-          if (opponentHand[randomIndex].count <= 0) {
-            opponentHand.splice(randomIndex, 1);
+          if (opponentHand[randomIndex]) {
+            opponentHand[randomIndex].count--;
+            if (opponentHand[randomIndex].count <= 0) {
+              opponentHand.splice(randomIndex, 1);
+            }
+            opponentCount--;
           }
-          opponentCount--;
         }
       }
 

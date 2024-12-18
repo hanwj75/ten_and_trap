@@ -13,7 +13,7 @@ export const getGameById = (roomId) => {
     if (!roomId) {
       throw new CustomError(ErrorCodes.INVALID_REQUEST, `방 ID가 제공되지 않았습니다.`);
     }
-    const game = gameSessions.find((game) => game.roomId === roomId);
+    const game = gameSessions.find((game) => game.roomId === Number(roomId));
     if (!game) {
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `방을 찾을 수 없습니다.`);
     }
@@ -25,7 +25,7 @@ export const getGameById = (roomId) => {
 
 export const modifyGameData = (roomId, updatedData) => {
   try {
-    const gameIndex = gameSessions.findIndex((game) => game.roomId === roomId);
+    const gameIndex = gameSessions.findIndex((game) => game.roomId === Number(roomId));
 
     if (gameIndex !== -1) {
       gameSessions[gameIndex] = { ...gameSessions[gameIndex], ...updatedData };
@@ -37,13 +37,27 @@ export const modifyGameData = (roomId, updatedData) => {
     handleError(null, err);
   }
 };
-
-export const removeGame = async (roomId) => {
+export const switchOn = (roomId) => {
   try {
-    const index = gameSessions.findIndex((game) => game.roomId === roomId);
+    const index = gameSessions.findIndex((game) => game.roomId === Number(roomId));
     if (index === -1) {
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `방을 찾을 수 없습니다.`);
     }
+    if (gameSessions[index].positionUpdateSwitch === false) {
+      gameSessions[index].positionUpdateSwitch = true;
+    }
+  } catch (err) {
+    handleError(null, err);
+  }
+};
+export const removeGame = async (roomId) => {
+  try {
+    const index = gameSessions.findIndex((game) => game.roomId === Number(roomId));
+    if (index === -1) {
+      throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `방을 찾을 수 없습니다.`);
+    }
+    clearTimeout(gameSessions[index].curInterval);
+    clearTimeout(gameSessions[index].positionInterval);
     return gameSessions.splice(index, 1)[0];
   } catch (err) {
     handleError(null, err);
