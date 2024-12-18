@@ -52,7 +52,7 @@ export const loginHandler = async (socket, payload) => {
     }
 
     // 유저 클래스 생성
-    const loginUser = new User(checkExistId.id, socket, email, null, checkExistId.nickName, { x: 0, y: 0 });
+    const loginUser = new User(checkExistId.id, socket, email, null, checkExistId.nickName);
 
     await addUser(loginUser);
     await updateUserLogin(email);

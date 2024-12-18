@@ -144,9 +144,6 @@ export const gameStartHandler = async (socket, payload) => {
       const randomKey = Math.floor(Math.random() * Object.keys(RANDOM_POSITIONS).length) + 1;
       const randomPosition = RANDOM_POSITIONS[randomKey];
       const characterPosition = new CharacterPosition(user.id, randomPosition);
-
-      // Session에 유저 위치정보 업데이트
-      modifyUserData(user.id, { characterPosition: randomPosition });
       // 각 사용자 포지션을 넣어주는 부분
       positionData.push(characterPosition);
     }
@@ -157,7 +154,7 @@ export const gameStartHandler = async (socket, payload) => {
     const currentPhase = PhaseType.values.DAY;
     const countTime = Date.now() + 30000;
     const newState = new GameState(currentPhase, countTime);
-    const game = new Game(currenUserRoomId, null, 0);
+    const game = new Game(Number(currenUserRoomId), null, 0, positionData, true);
     addGame(game);
     const tagger = currenRoomData.ownerId;
     //게임 시작 notification
