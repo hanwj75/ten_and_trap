@@ -24,7 +24,8 @@ export const loginHandler = async (socket, payload) => {
     const checkExistId = await redis.getAllFieldsFromHash(`loginData${email}`);
 
     // 유저 클래스 생성
-    const loginUser = new User(Number(checkExistId.id), socket, email, null, checkExistId.nickName, { x: 0, y: 0 });
+    const loginUser = new User(Number(checkExistId.id), socket, email, null, checkExistId.nickName);
+
     await addUser(loginUser);
 
     // 이쪽서버 세션에 추가가 필요
