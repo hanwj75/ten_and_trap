@@ -58,7 +58,7 @@
 
   술래가 사용한 카드의 타겟이 되면 타겟이 된 유저는 카드 효과를 받고 턴을 넘길지 아니면 방어 카드를 사용해서 카드 효과를 무효화할지 선택 할 수 있습니다.
 
-**[Dash for Ten 카드 종류](https://www.notion.so/teamsparta/Dash-for-Ten-430233f9fdfa40d5b424330c57f621e1)**
+**[Dash for Ten 카드 목록](https://teamsparta.notion.site/Dash-for-Ten-430233f9fdfa40d5b424330c57f621e1)**
 
 
 
