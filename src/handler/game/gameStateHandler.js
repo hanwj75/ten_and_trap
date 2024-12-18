@@ -140,6 +140,24 @@ export const gamePrepareHandler = async (socket, payload) => {
         }
       });
 
+      newQueue.on('completed', async (job) => {
+        const redisKey = `bull:${currenUserRoomId}room-queue:${job.id}`;
+        try {
+          await redis.delRedisByKey(redisKey);
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
+      newQueue.on('failed', async (job) => {
+        const redisKey = `bull:${currenUserRoomId}room-queue:${job.id}`;
+        try {
+          await redis.delRedisByKey(redisKey);
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
       const loadjob = `success to add queue for ${currenUserRoomId}room!`;
       await newQueue.add({ loadjob, jobType: 0 });
 

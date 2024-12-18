@@ -43,6 +43,10 @@ export const gameEndNotification = async (socket, roomId) => {
       await modifyUserData(userId, { joinRoom: null }); // userSession 초기화
     });
 
+    await redis.delRedisByKey(`bull:${roomId}room-queue:completed`);
+    await redis.delRedisByKey(`bull:${roomId}room-queue:stalled-check`);
+    await redis.delRedisByKey(`bull:${roomId}room-queue:id`);
+
     await redis.delRedisByKey(`room:${roomId}`);
   } catch (err) {
     console.error(`게임 엔드 에러`, err);
@@ -75,6 +79,10 @@ export const gameOnEndNotification = async (roomId) => {
 
     const removeQueue = await getRemoveQueue();
     await removeQueue(`${roomId}room-queue`);
+
+    await redis.delRedisByKey(`bull:${roomId}room-queue:completed`);
+    await redis.delRedisByKey(`bull:${roomId}room-queue:stalled-check`);
+    await redis.delRedisByKey(`bull:${roomId}room-queue:id`);
 
     // Redis에서 방 데이터 삭제
     await redis.delRedisByKey(`room:${roomId}`);

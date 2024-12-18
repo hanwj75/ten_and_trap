@@ -6,6 +6,7 @@ import User from '../../classes/models/user.class.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import axios from 'axios';
+import { handleError } from '../../utils/error/errorHandler.js';
 /**
  *
  * @desc 로그인
