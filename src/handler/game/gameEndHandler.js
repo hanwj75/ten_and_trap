@@ -5,6 +5,7 @@ import { WinType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
+import { getRemoveQueue } from '../../init/redis/bull/bull.js';
 
 export const gameEndNotification = async (socket, roomId) => {
   try {
@@ -24,6 +25,9 @@ export const gameEndNotification = async (socket, roomId) => {
     const notification = { gameEndNotification: { winners, winType: WinType.values.PSYCHOPATH_WIN } };
 
     sendNotificationToUsers(userData, notification, PACKET_TYPE.GAME_END_NOTIFICATION, 0);
+
+    const removeQueue = await getRemoveQueue();
+    await removeQueue(`${roomId}room-queue`);
 
     winners.forEach(async (user) => {
       await addGold(user);
@@ -68,6 +72,9 @@ export const gameOnEndNotification = async (roomId) => {
       await redis.addRedisToHash(`user:${userId}`, redisInit); // redis 초기화
       await modifyUserData(userId, { joinRoom: null }); // userSession 초기화
     });
+
+    const removeQueue = await getRemoveQueue();
+    await removeQueue(`${roomId}room-queue`);
 
     // Redis에서 방 데이터 삭제
     await redis.delRedisByKey(`room:${roomId}`);

@@ -1,8 +1,10 @@
+import { BullAdapter } from '@bull-board/api/bullAdapter.js';
 import CharacterPosition from '../../classes/models/characterPosition.class.js';
 import GameState from '../../classes/models/gameState.class.js';
 import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
 import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
+import { getAddQueue, queueOptions, queuesSessions } from '../../init/redis/bull/bull.js';
 import { redis } from '../../init/redis/redis.js';
 import { addGame } from '../../sessions/game.session.js';
 import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
@@ -11,8 +13,9 @@ import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { handleError } from '../../utils/error/errorHandler.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { button } from './phaseUpdateHandler.js';
+import { button, phaseUpdateHandler } from './phaseUpdateHandler.js';
 import Game from '../../classes/models/game.class.js';
+import Queue from 'bull';
 /**
  * @desc 게임준비
  * @author 한우종
@@ -105,6 +108,40 @@ export const gamePrepareHandler = async (socket, payload) => {
       const notification = { gamePrepareNotification: { room: roomData } };
 
       sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_PREPARE_NOTIFICATION, 0);
+
+      // 새로운 작업 대기열 생성성
+      const queueName = `${currenUserRoomId}room-queue`;
+      const newQueue = new Queue(queueName, queueOptions);
+      const bullAdapter = new BullAdapter(newQueue);
+      const addQueue = await getAddQueue();
+      await addQueue(bullAdapter);
+      newQueue.roomId = currenUserRoomId;
+
+      queuesSessions.push(newQueue);
+
+      newQueue.process(async (job, done) => {
+        try {
+          const { jobType } = job.data;
+          console.log('jobType', jobType);
+
+          if (+jobType === 0) {
+            const { loadjob } = job.data;
+            console.log(loadjob);
+            done();
+          }
+
+          if (+jobType === 1) {
+            const { socket, room, nextState } = job.data;
+            await phaseUpdateHandler(socket, room, nextState);
+            done();
+          }
+        } catch (err) {
+          throw err;
+        }
+      });
+
+      const loadjob = `success to add queue for ${currenUserRoomId}room!`;
+      await newQueue.add({ loadjob, jobType: 0 });
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
