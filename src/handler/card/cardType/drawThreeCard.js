@@ -14,7 +14,7 @@ export const drawThreeCard = async (userData) => {
     const user = userData;
 
     for (let i = 0; i < 3; i++) {
-      const randomType = Math.floor(Math.random() * 23) + 1;
+      const randomType = Math.floor(Math.random() * 7) + 1;
       const existType = user.handCards.find((card) => card.type === randomType);
 
       if (existType) {

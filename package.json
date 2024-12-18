@@ -6,14 +6,19 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "api": "nodemon src/apiLoginServer.js",
-    "migrate": "node src/db/migration/createSchemas.js"
+    "migrate": "node src/db/migration/createSchemas.js",
+    "bulltest": "nodemon src/init/redis/bull.js"
   },
   "repository": "https://github.com/hanwj75/ten_and_trap.git",
   "author": "hanwj75 <wjws9608@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.7.9",
+    "@bull-board/api": "^6.5.3",
+    "@bull-board/express": "^6.5.3",
+    "@bull-board/ui": "^6.5.3",
     "bcrypt": "^5.1.1",
+    "bull": "^4.16.4",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "fs": "^0.0.1-security",
