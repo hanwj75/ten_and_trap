@@ -32,6 +32,8 @@
 
 ## 서비스 아키텍처
 
+<img src="https://github.com/user-attachments/assets/171840a6-7db9-4369-8fd8-00f9949c69f9" width="600">
+
 ## 게임 주요 컨텐츠
 
 **[Dash for Ten 카드 목록](https://teamsparta.notion.site/Dash-for-Ten-430233f9fdfa40d5b424330c57f621e1)**
@@ -72,4 +74,29 @@
 
 ## 트러블 슈팅
 
+- [[AWS EC2]Docker 배포 트러블슈팅](https://www.notion.so/teamsparta/AWS-DOCKER-2f412e3f399b4d8dac2150f506309d0d?pvs=4)
+- [Bull queue 작섭 대기열 트러블슈팅](https://www.notion.so/teamsparta/Bull-778c1ea71c5349dfa62256b1198e7d49?pvs=4)
+
 ## 기술 스택
+
+- Server
+
+   <img src="https://img.shields.io/badge/Node.js-5FA04E.svg?style=for-the-badge&logo=node.js&logoColor=20232a" />
+    <img src="https://img.shields.io/badge/TCP/IP-FF8700.svg?style=for-the-badge&logo=TCP &logoColor=20232a" />
+     <img src="https://img.shields.io/badge/Protobuf-4D9FE7.svg?style=for-the-badge&logo=protobufjs&logoColor=20232a" />
+
+
+- Client
+
+   <img src="https://img.shields.io/badge/Unity-E0234E.svg?style=for-the-badge&logo=unity&logoColor=20232a" />
+
+- Database
+
+  <img src="https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white" />
+  <img src="https://img.shields.io/badge/redis-FF4438.svg?style=for-the-badge&logo=redis&logoColor=white" />
+
+- DevOps / Infra
+
+  <img src="https://img.shields.io/badge/amazonec2-FF9900.svg?style=for-the-badge&logo=amazonec2&logoColor=white" />
+  <img src="https://img.shields.io/badge/docker-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white" />
+   <img src="https://img.shields.io/badge/Bull Queue-4D9FE7.svg?style=for-the-badge&logo=redbull&logoColor=20232a" />

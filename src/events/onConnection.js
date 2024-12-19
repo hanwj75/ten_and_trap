@@ -3,7 +3,7 @@ import { onEnd } from './onEnd.js';
 import { onError } from './onError.js';
 
 export const onConnection = (socket) => {
-  console.log(`Client connected from ${socket.remoteAddress}:${socket.remotePort}`);
+  // console.log(`Client connected from ${socket.remoteAddress}:${socket.remotePort}`);
   socket.buffer = Buffer.alloc(0);
   socket.on('data', onData(socket));
 
