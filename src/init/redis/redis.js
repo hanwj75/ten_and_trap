@@ -9,7 +9,7 @@ const env = dbConfig.redis;
 const redisClient = new Redis({
   host: env.host, // Redis 클라우드 호스트
   port: env.port, // Redis 클라우드 포트
-  password: env.password, // Redis 클라우드 비밀번호
+  // password: env.password, // Redis 클라우드 비밀번호
 });
 redisClient.on('error', (err) => {
   console.error('Redis error: ', err);
@@ -63,7 +63,7 @@ export const redis = {
   updateRedisToHash: async (key, fiedl, val) => {
     // Redis에 사용자 목록 저장
     await redisClient.hset(`room:${key}`, fiedl, JSON.stringify(val));
-    console.log(`사용자 목록이 방 ${key}에 저장되었습니다.`);
+    // console.log(`사용자 목록이 방 ${key}에 저장되었습니다.`);
   },
 
   // 방에 해당하는 모든 키 가져오기
@@ -140,24 +140,3 @@ export const redis = {
     await redisClient.flushall();
   },
 };
-
-// 순위 1~7등
-// 레디스를 사용해서 나갈때마다 저장했다가 메인DB로 ㄱㄱ
-//
-// 순위가 높을수록 점수를 많이주는거임
-// if(true) {
-//   desc
-// } else {
-//   asc
-// }
-// 1,2,3,4,5,6,7 =>
-// 1,2,3, => 파산하면 7 승리조건을 맞추면 1
-// 1,2,3,4
-
-//승리시 승리스택에 쌓음
-//패배시 패배스택에 쌓음
-//[1,2,3]승리 1~3 순으로
-//push로 쌓기
-//[4,5,6,7]패배 7~4 순으로
-//shift로 쌓기
-//게임종료후 concat으로 스택 합치기

@@ -34,14 +34,14 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     //차후 10장으로 변경
     const isWinner = users.findIndex((user) => user.character.handCardsCount == 10);
     if (phase === '3') {
-      console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      // console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateRedisToHash(room.id, `phase`, 1);
 
       if (isWinner !== -1) {
         gameEndNotification(socket, room.id);
       }
     } else if (phase === '1') {
-      console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      // console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await drawCard(nextTagger, room);
       await redis.updateRedisToHash(room.id, `phase`, 3);
       await redis.updateRedisToHash(room.id, `tagger`, nextTagger); // 술래 변경 저장
@@ -94,7 +94,7 @@ const runInterval = async (socket, roomId) => {
   // 유저가 없으면 인터벌 중지
   if (users.length === 0) {
     await removeGame(room.id);
-    console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
+    // console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
     return;
   }
 
@@ -102,7 +102,7 @@ const runInterval = async (socket, roomId) => {
   game.currentIndex = (game.currentIndex + 1) % intervals.length;
   const nextState = intervals[game.currentIndex];
   const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
-  console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
+  // console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
   await currentQueue.add({ socket, room, nextState, jobType: 1 });
 
   game.curInterval = setTimeout(() => runInterval(socket, roomId), nextState);

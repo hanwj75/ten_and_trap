@@ -1,7 +1,7 @@
 const testConnection = async (pool, dbName) => {
   try {
     const [rows] = await pool.query(`SELECT 1 + 1 AS solution`);
-    console.log(`${dbName} 테스트 쿼리 결과: ${rows[0].solution}`);
+    // console.log(`${dbName} 테스트 쿼리 결과: ${rows[0].solution}`);
   } catch (err) {
     console.error(`${dbName} 테스트 쿼리 실행 오류:`, err);
   }
