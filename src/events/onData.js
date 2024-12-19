@@ -38,12 +38,12 @@ export const onData = (socket) => async (data) => {
       // console.log(`PACKETLENGTH : ${packetLength}`);
       // console.log(`VERSION : ${version}`);
       // console.log(`SEQUENCE : ${sequence}`);
-      console.log(`PAYLOAD: ${payload}`);
+      // console.log(`PAYLOAD: ${payload}`);
 
       try {
         //모든 패킷 처리
         const decodedPacket = GamePacket.decode(payload);
-        console.log(`decode:  ${JSON.stringify(decodedPacket)}`);
+        // console.log(`decode:  ${JSON.stringify(decodedPacket)}`);
 
         const handler = getProtoPacketType(payloadOneofCase);
         if (handler) {

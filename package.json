@@ -7,7 +7,8 @@
     "dev": "nodemon src/server.js",
     "api": "nodemon src/apiLoginServer.js",
     "migrate": "node src/db/migration/createSchemas.js",
-    "bulltest": "nodemon src/init/redis/bull.js"
+    "bulltest": "nodemon src/init/redis/bull.js",
+    "start": "node src/server.js"
   },
   "repository": "https://github.com/hanwj75/ten_and_trap.git",
   "author": "hanwj75 <wjws9608@gmail.com>",

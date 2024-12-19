@@ -35,7 +35,7 @@ export const throwAwayYourAllCard = async (userData, opponentData, roomData) => 
     const existShield = opponentHand.find((card) => card.type === 3);
     if (existShield) {
       //실드 있다면 나중에 reactionHandler에서 적용
-      console.log('i have shield');
+      // console.log('i have shield');
     } else {
       opponentHand = [];
       opponentCount = 0;

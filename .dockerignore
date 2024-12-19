@@ -1,0 +1,9 @@
+.dockerignore
+.git
+Dockerfile
+Dockerfile.login
+node_modules
+.env
+.development
+nginx
+.prettierrc

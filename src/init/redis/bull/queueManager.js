@@ -9,7 +9,7 @@ export const addQueue = (queueName, options) => {
     const newQueue = new Queue(queueName, options);
     queueInstances.set(queueName, newQueue);
     bullAdapters.set(queueName, new BullAdapter(newQueue));
-    console.log(`Queue "${queueName}" added.`);
+    // console.log(`Queue "${queueName}" added.`);
   } else {
     console.warn(`Queue "${queueName}" already exists.`);
   }
