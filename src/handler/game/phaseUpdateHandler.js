@@ -35,11 +35,11 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
 
     if (phase === '3') {
       console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
-      await drawCard(curTagger, room);
-      await redis.updateRedisToHash(room.id, `phase`, 1);
       if (isWinner !== -1) {
         gameEndNotification(socket, room.id);
       }
+      await drawCard(curTagger, room);
+      await redis.updateRedisToHash(room.id, `phase`, 1);
     } else if (phase === '1') {
       console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateRedisToHash(room.id, `phase`, 3);
