@@ -108,7 +108,8 @@ const stealedCardFunction = async (userData, opponentData, roomData) => {
       opponentHand = [];
     } else {
       for (let i = 0; i < count; i++) {
-        const randomIndex = Math.floor(Math.random() * opponentCount);
+        if (opponentCount === 0) break;
+        const randomIndex = Math.floor(Math.random() * opponentHand.length);
         const existType = user.handCards.find((card) => card.type === opponentHand[randomIndex].type);
 
         if (existType) {
@@ -158,7 +159,7 @@ const throwAwayCardFunction = async (userData, opponentData, roomData, isAll) =>
     let opponentCount = opponentData.handCardsCount;
 
     if (!isAll) {
-      const randomIndex = Math.floor(Math.random() * opponentCount);
+      const randomIndex = Math.floor(Math.random() * opponentHand.length);
 
       if (opponentHand[randomIndex]) {
         opponentHand[randomIndex].count--;
