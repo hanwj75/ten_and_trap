@@ -37,7 +37,6 @@ export const throwAwayAll = async (userData, roomData) => {
       const existShield = opponentHand.find((card) => card.type === 3);
       if (existShield) {
         //실드 있다면 나중에 reactionHandler에서 적용
-        // console.log('i have shield');
       } else {
         if (opponentCount > 0) {
           const randomIndex = Math.floor(Math.random() * opponentCount);
@@ -53,7 +52,7 @@ export const throwAwayAll = async (userData, roomData) => {
       }
 
       // redis에 상대 유저 정보 업데이트
-      const updateRoomData = roomData.users.find((user) => user.id == curOpponent.id);
+      const updateRoomData = allUsers.find((user) => user.id == curOpponent.id);
       const updateCharacter = updateRoomData.character;
       updateCharacter.handCards = opponentHand;
       updateCharacter.handCardsCount = opponentCount;
@@ -69,7 +68,7 @@ export const throwAwayAll = async (userData, roomData) => {
       redis.addRedisToHash(`user:${curOpponent.id}`, updatedOpponentData);
     });
 
-    const users = JSON.stringify(roomData.users);
+    const users = JSON.stringify(allUsers);
     const updatedRoomData = { ...roomData, users };
     await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 

@@ -31,6 +31,8 @@ export const reactionHandler = async (socket, payload) => {
     const opponentData = await redis.getAllFieldsFromHash(`user:${userData.stateInfo.stateTargetUserId}`);
 
     switch (curState) {
+      case 0:
+        break;
       case 2: // "내놔" 맞은 사람
         stealedCardFunction(opponentData, userData, roomData);
         break;

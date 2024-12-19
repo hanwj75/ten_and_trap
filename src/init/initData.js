@@ -19,13 +19,8 @@ export const redisInit = {
   debuffs: JSON.stringify([]),
   equips: JSON.stringify([]),
   bbangCount: 0,
-  handCards: JSON.stringify([
-    { type: 1, count: 1 },
-    { type: 2, count: 1 },
-    { type: 3, count: 1 },
-    { type: 4, count: 1 },
-  ]),
-  handCardsCount: 4,
+  handCards: JSON.stringify([]),
+  handCardsCount: 0,
   joinRoom: null,
   stateInfo: JSON.stringify({ state: 0, nextStage: 0, nextStageAt: 0, stateTargetUserId: 0 }),
 };

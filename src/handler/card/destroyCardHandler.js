@@ -25,7 +25,7 @@ export const destroyCardHandler = async (socket, payload) => {
       userData.handCards.splice(cardIndex, 1);
     }
     // handCardsCount를 업데이트
-    userData.handCardsCount = userData.handCards.length;
+    userData.handCardsCount--;
 
     const destroyCardPayload = { handCards: userData.handCards };
     socket.write(createResponse(destroyCardPayload, PACKET_TYPE.DESTROY_CARD_RESPONSE, 0));
