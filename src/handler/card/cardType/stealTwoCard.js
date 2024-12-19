@@ -62,7 +62,7 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
         opponentHand = [];
       } else {
         for (let i = 0; i < count; i++) {
-          const randomIndex = Math.floor(Math.random() * opponentCount);
+          const randomIndex = Math.floor(Math.random() * opponentHand.length);
           const existType = user.handCards.find((card) => card.type === opponentHand[randomIndex].type);
 
           if (existType) {

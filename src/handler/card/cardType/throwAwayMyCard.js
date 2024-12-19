@@ -11,7 +11,7 @@ export const throwAwayMyCard = async (userData) => {
     const user = userData;
 
     if (user.handCardsCount > 0) {
-      const randomIndex = Math.floor(Math.random() * user.handCardsCount);
+      const randomIndex = Math.floor(Math.random() * user.handCards.length);
       const userHandCard = user.handCards[randomIndex];
 
       //카드 개수 감소
