@@ -23,14 +23,12 @@ app.post('/login', async (req, res) => {
     const checkExistId = await findUserById(email);
 
     if (!checkExistId) {
-      console.log('아이디 확인 작동테스트');
       return res.status(401).json({ massage: '아이디 또는 비밀번호가 잘못되었습니다.' });
     }
 
     // 비밀번호 존재 검증
     const checkPassword = await bcrypt.compare(password, checkExistId.password);
     if (!checkPassword) {
-      console.log('비밀번호 확인 작동테스트');
       return res.status(401).json({ massage: '아이디 또는 비밀번호가 잘못되었습니다.' });
     }
 

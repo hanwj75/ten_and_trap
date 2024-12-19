@@ -44,7 +44,7 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
     const existShield = opponentHand.find((card) => card.type === 3);
     if (existShield) {
       //실드 있다면 나중에 reactionHandler에서 적용
-      console.log('i have shield');
+      // console.log('i have shield');
     } else {
       // 만약 2장이 없다면 다 뺏고 종료
       if (Number(opponentCount) <= count) {

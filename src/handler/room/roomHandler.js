@@ -203,15 +203,15 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       console.error(`유효하지 않은 사용자`);
       return;
     }
-    console.log('user test : ', user);
+    // console.log('user test : ', user);
     //현재 방 목록 가져오기
     const roomKeys = await redis.getRoomKeys('room:*'); // 모든 방 키를 가져옴
 
     //방 목록이 없을경우
     if (roomKeys.length > 0) {
-      console.log('방 키들:', roomKeys);
+      // console.log('방 키들:', roomKeys);
     } else {
-      console.log('해당 방이 존재하지 않습니다.');
+      // console.log('해당 방이 존재하지 않습니다.');
       const joinRandomRoomPayload = {
         joinRandomRoomResponse: {
           success: false,
@@ -231,7 +231,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       const randomRoomKey = allRooms[randomIndex];
       roomData = await redis.getAllFieldsFromHash(`room:${randomRoomKey.id}`);
     } else {
-      console.log('해당되는 방이 존재하지 않습니다.');
+      // console.log('해당되는 방이 존재하지 않습니다.');
       const joinRandomRoomPayload = {
         joinRandomRoomResponse: {
           success: false,

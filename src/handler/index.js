@@ -14,7 +14,7 @@ import { reactionHandler } from './card/reactionHandler.js';
 import { destroyCardHandler, destroyCardRandomHandler } from './card/destroyCardHandler.js';
 import { phaseChangeHandler } from './game/phaseUpdateHandler.js';
 const testFunction = () => {
-  console.log(`이거 지우고 넣으시면 됩니다.`);
+  // console.log(`이거 지우고 넣으시면 됩니다.`);
 };
 
 const handlers = {
