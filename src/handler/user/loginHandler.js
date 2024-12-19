@@ -15,7 +15,7 @@ import { handleError } from '../../utils/error/errorHandler.js';
  */
 export const loginHandler = async (socket, payload) => {
   try {
-    const loginUrl = 'http://127.0.0.1:3336';
+    const loginUrl = 'http://login-server:3334';
     const loginData = payload.loginRequest;
     await axios.post(`${loginUrl}/login`, { loginData, socket });
 

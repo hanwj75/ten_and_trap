@@ -23,7 +23,7 @@ import Queue from 'bull';
  */
 export const gamePrepareHandler = async (socket, payload) => {
   try {
-    console.log(`게임준비!`);
+    // console.log(`게임준비!`);
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
     //현재 유저가 있는 방ID
@@ -122,11 +122,11 @@ export const gamePrepareHandler = async (socket, payload) => {
       newQueue.process(async (job, done) => {
         try {
           const { jobType } = job.data;
-          console.log('jobType', jobType);
+          // console.log('jobType', jobType);
 
           if (+jobType === 0) {
             const { loadjob } = job.data;
-            console.log(loadjob);
+            // console.log(loadjob);
             done();
           }
 
@@ -180,7 +180,7 @@ export const gamePrepareHandler = async (socket, payload) => {
  */
 export const gameStartHandler = async (socket, payload) => {
   try {
-    console.log(`게임시작!`);
+    // console.log(`게임시작!`);
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
     if (!user) {

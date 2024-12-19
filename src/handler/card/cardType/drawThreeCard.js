@@ -9,7 +9,7 @@ import { getGameAssets } from '../../../init/assets.js';
 export const drawThreeCard = async (userData) => {
   try {
     const { card } = getGameAssets();
-    console.log(card.data[0].id);
+    // console.log(card.data[0].id);
 
     const user = userData;
 
