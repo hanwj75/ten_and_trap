@@ -32,9 +32,9 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ massage: '아이디 또는 비밀번호가 잘못되었습니다.' });
     }
 
-    const isExistUser = await redis.getRedis(email);
+    const isExistUser = await redis.getAllFieldsFromHash(`user:${Number(checkExistId.id)}`);
 
-    if (isExistUser) {
+    if (isExistUser.id) {
       return res.status(401).json({ massage: '이미 접속중인 계정입니다.' });
     }
 
