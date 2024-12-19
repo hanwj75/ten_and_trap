@@ -7,7 +7,7 @@ import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
 import { getAddQueue, queueOptions, queuesSessions } from '../../init/redis/bull/bull.js';
 import { redis } from '../../init/redis/redis.js';
 import { addGame } from '../../sessions/game.session.js';
-import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
+import { getUserBySocket } from '../../sessions/user.session.js';
 import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { handleError } from '../../utils/error/errorHandler.js';
@@ -16,6 +16,7 @@ import { createResponse } from '../../utils/response/createResponse.js';
 import { button, phaseUpdateHandler } from './phaseUpdateHandler.js';
 import Game from '../../classes/models/game.class.js';
 import Queue from 'bull';
+import seedrandom from 'seedrandom';
 /**
  * @desc 게임준비
  * @author 한우종
@@ -55,27 +56,6 @@ export const gamePrepareHandler = async (socket, payload) => {
       throw new CustomError(ErrorCodes.NOT_ROOM_OWNER, `방장이 아닙니다.`);
     }
 
-    // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
-    const handCards = [];
-    for (let i = 0; i < 2; i++) {
-      let randomType = Math.floor(Math.random() * 7) + 1;
-      const existType = handCards.find((card) => card.type === randomType);
-      if (existType) {
-        existType.count++;
-      } else {
-        handCards.push({ type: randomType, count: 1 });
-      }
-    }
-    // const handCards = [
-    //   { type: 1, count: 1 },
-    //   { type: 2, count: 1 },
-    //   { type: 3, count: 1 },
-    //   { type: 4, count: 1 },
-    //   { type: 5, count: 1 },
-    //   { type: 6, count: 1 },
-    //   { type: 7, count: 1 },
-    // ];
-
     //방 상태 업데이트
     if (currenRoomData.state === '0') {
       await redis.updateRedisToHash(currenUserRoomId, `state`, 1);
@@ -83,10 +63,29 @@ export const gamePrepareHandler = async (socket, payload) => {
 
       const users = JSON.parse(reCurrenRoomData.users);
       for (const user of users) {
+        // 랜덤 시드 부여
+        const rng = seedrandom(`user-${user.id}-${Date.now()}`);
+        const handCards = [];
+        let cardCount = 2;
+
+        // 술래라면 시작할때 드로우해서 3장으로 시작
+        if (user.id == reCurrenRoomData.ownerId) {
+          cardCount = 4;
+        }
+        const cardTypes = shuffle([1, 2, 3, 4, 5, 6, 7], rng, cardCount);
+        for (let i = 0; i < cardCount; i++) {
+          let randomType = cardTypes[i];
+          const existType = handCards.find((card) => card.type === randomType);
+          if (existType) {
+            existType.count++;
+          } else {
+            handCards.push({ type: randomType, count: 1 });
+          }
+        }
         user.character.characterType = 1;
         user.character.roleType = 1;
         user.character.handCards = handCards;
-        user.character.handCardsCount = handCards.length;
+        user.character.handCardsCount = cardCount;
 
         const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
         const userHandCards = JSON.stringify(handCards);
@@ -95,13 +94,12 @@ export const gamePrepareHandler = async (socket, payload) => {
           characterType: 1,
           roleType: 1,
           handCards: userHandCards,
-          handCardsCount: handCards.length,
+          handCardsCount: cardCount,
         };
         await redis.addRedisToHash(`user:${user.id}`, updatedUserData);
       }
 
       await redis.addRedisToHash(`room:${reCurrenRoomData.id}`, { ...reCurrenRoomData, users: JSON.stringify(users) });
-
       const roomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
       //준비 notification 쏴주는부분
       roomData.users = JSON.parse(roomData.users);
@@ -229,3 +227,12 @@ export const gameStartHandler = async (socket, payload) => {
     handleError(socket, err);
   }
 };
+
+function shuffle(array, rng, count) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+
+  return array.slice(0, count);
+}

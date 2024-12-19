@@ -45,8 +45,8 @@ export const gameEndNotification = async (socket, roomId) => {
 
     const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
     const currentQueueIndex = queuesSessions.findIndex((queue) => queue.roomId == roomId);
-    await currentQueue.close();
     await currentQueue.obliterate({ force: true });
+    await currentQueue.close();
     await redis.delRedisByKey(`bull:${roomId}room-queue:id`);
     if (currentQueueIndex !== -1) {
       queuesSessions.splice(currentQueueIndex, 1);
@@ -87,8 +87,8 @@ export const gameOnEndNotification = async (roomId) => {
 
     const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
     const currentQueueIndex = queuesSessions.findIndex((queue) => queue.roomId == roomId);
-    await currentQueue.close();
     await currentQueue.obliterate({ force: true });
+    await currentQueue.close();
     await redis.delRedisByKey(`bull:${roomId}room-queue:id`);
     if (currentQueueIndex !== -1) {
       queuesSessions.splice(currentQueueIndex, 1);

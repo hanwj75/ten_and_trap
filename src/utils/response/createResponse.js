@@ -20,13 +20,7 @@ const createHeader = (payloadLength, packetType, sequence) => {
   const payloadLengthBuffer = Buffer.alloc(PAYLOAD_LENGTH);
   payloadLengthBuffer.writeUInt32BE(payloadLength, 0);
 
-  return Buffer.concat([
-    packetTypeBuffer,
-    versionLengthBuffer,
-    versionBuffer,
-    sequenceBuffer,
-    payloadLengthBuffer,
-  ]);
+  return Buffer.concat([packetTypeBuffer, versionLengthBuffer, versionBuffer, sequenceBuffer, payloadLengthBuffer]);
 };
 
 export const createResponse = (payload, packetType, sequence) => {

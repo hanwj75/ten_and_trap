@@ -203,7 +203,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       console.error(`유효하지 않은 사용자`);
       return;
     }
-    // console.log('user test : ', user);
+
     //현재 방 목록 가져오기
     const roomKeys = await redis.getRoomKeys('room:*'); // 모든 방 키를 가져옴
 

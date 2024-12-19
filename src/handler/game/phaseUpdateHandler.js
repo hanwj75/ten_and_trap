@@ -31,18 +31,17 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     const curTagger = room.tagger;
     const nextTagger = getNextTaggerId(users, curTagger);
 
-    //차후 10장으로 변경
     const isWinner = users.findIndex((user) => user.character.handCardsCount == 10);
-    if (phase === '3') {
-      // console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
-      await redis.updateRedisToHash(room.id, `phase`, 1);
 
+    if (phase === '3') {
+      console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      await drawCard(curTagger, room);
+      await redis.updateRedisToHash(room.id, `phase`, 1);
       if (isWinner !== -1) {
         gameEndNotification(socket, room.id);
       }
     } else if (phase === '1') {
-      // console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
-      await drawCard(nextTagger, room);
+      console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateRedisToHash(room.id, `phase`, 3);
       await redis.updateRedisToHash(room.id, `tagger`, nextTagger); // 술래 변경 저장
     }
@@ -84,7 +83,7 @@ export const button = async (socket) => {
   }
 };
 
-const runInterval = async (socket, roomId) => {
+const runInterval = async (socket, roomId, prevTime) => {
   const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
   if (!room) {
     throw new CustomError(ErrorCodes.ROOM_NOT_FOUND, `방 정보를 찾을 수 없습니다.`);
@@ -100,18 +99,25 @@ const runInterval = async (socket, roomId) => {
 
   // 다음 인터벌 설정
   game.currentIndex = (game.currentIndex + 1) % intervals.length;
+  modifyGameData(room.id, { currentIndex: game.currentIndex });
   const nextState = intervals[game.currentIndex];
   const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
   console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
   await currentQueue.add({ socket, room, nextState, jobType: 1 }, { attempts: 3, backoff: 500, removeOnComplete: true });
 
-  game.curInterval = setTimeout(() => runInterval(socket, roomId), nextState);
+  // 이전 페이즈 시작했던시간이랑 지금 페이즈 시작시간 계산해서 딜레이된 시간 수정
+  const nextTime = prevTime + nextState;
+  const now = Date.now();
+  const delay = Math.max(nextTime - now, 0);
+  game.curInterval = setTimeout(() => runInterval(socket, roomId, nextTime), delay);
+  modifyGameData(room.id, { curInterval: game.curInterval });
 };
 
 export const startCustomInterval = async (socket, roomId) => {
   try {
     const game = await getGameById(roomId);
-    game.curInterval = setTimeout(() => runInterval(socket, roomId), intervals[game.currentIndex]);
+    const nextTime = Date.now() + intervals[game.currentIndex];
+    game.curInterval = setTimeout(() => runInterval(socket, roomId, nextTime), intervals[game.currentIndex]);
   } catch (err) {
     handleError(socket, err);
   }
@@ -131,11 +137,13 @@ export const phaseChangeHandler = async (socket) => {
 
   const roomId = await redis.getRedisToHash(`user:${currentUserId}`, `joinRoom`);
   const room = await redis.getAllFieldsFromHash(`room:${roomId}`);
-  if (room.phase === '1') {
+  const phase = room.phase;
+  if (phase === '1') {
     const game = await getGameById(roomId);
     clearTimeout(game.curInterval);
+    const now = Date.now();
     try {
-      game.curInterval = setTimeout(() => runInterval(socket, roomId), 0);
+      game.curInterval = setTimeout(() => runInterval(socket, roomId, now), 0);
     } catch (err) {
       handleError(socket, err);
     }
