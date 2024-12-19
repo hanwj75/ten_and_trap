@@ -140,26 +140,29 @@ export const gamePrepareHandler = async (socket, payload) => {
         }
       });
 
-      newQueue.on('completed', async (job) => {
-        const redisKey = `bull:${currenUserRoomId}room-queue:${job.id}`;
-        try {
-          await redis.delRedisByKey(redisKey);
-        } catch (err) {
-          console.error(err);
+      newQueue.on('failed', async (job, err) => {
+        console.error(`Job failed after ${job.attemptsMade} attempts`, err.message);
+
+        if (job.attemptsMade === 1 && !newQueue.isPaused()) {
+          console.log('Pausing queue due to initial failure.');
+          await newQueue.pause();
+        }
+
+        if (job.attemptsMade >= job.opts.attempts) {
+          console.log('Retry limit exceeded!');
+          // 작업 재시도 초과 시 처리할 로직
         }
       });
 
-      newQueue.on('failed', async (job) => {
-        const redisKey = `bull:${currenUserRoomId}room-queue:${job.id}`;
-        try {
-          await redis.delRedisByKey(redisKey);
-        } catch (err) {
-          console.error(err);
+      newQueue.on('completed', async (job) => {
+        console.log(`Job completed successfully: ${job.id}`);
+        if (newQueue.isPaused()) {
+          await newQueue.resume();
         }
       });
 
       const loadjob = `success to add queue for ${currenUserRoomId}room!`;
-      await newQueue.add({ loadjob, jobType: 0 });
+      await newQueue.add({ loadjob, jobType: 0 }, { attempts: 3, backoff: 500, removeOnComplete: true });
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
