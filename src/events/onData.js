@@ -9,8 +9,11 @@ export const onData = (socket) => async (data) => {
 
   while (socket.buffer.length >= headers.TOTAL_PACKET_LENGTH) {
     const payloadOneofCase = socket.buffer.readUInt16BE(0);
+
     const versionLength = socket.buffer.readUint8(headers.PAYLOAD_ONEOF_CASE);
+
     const totalHeaderLength = headers.TOTAL_PACKET_LENGTH + versionLength;
+
     if (socket.buffer.length >= totalHeaderLength) {
       const versionOffset = headers.PAYLOAD_ONEOF_CASE + headers.VERSION_LENGTH;
       const version = socket.buffer.toString('utf-8', versionOffset, versionOffset + versionLength);
@@ -32,15 +35,16 @@ export const onData = (socket) => async (data) => {
       const payload = socket.buffer.subarray(totalHeaderLength, packetLength);
       socket.buffer = socket.buffer.subarray(packetLength);
 
-      console.log(`PACKETLENGTH : ${packetLength}`);
-      console.log(`VERSION : ${version}`);
-      console.log(`SEQUENCE : ${sequence}`);
-      console.log(`PAYLOAD: ${payload}`);
+      // console.log(`PACKETLENGTH : ${packetLength}`);
+      // console.log(`VERSION : ${version}`);
+      // console.log(`SEQUENCE : ${sequence}`);
+      // console.log(`PAYLOAD: ${payload}`);
 
       try {
         //모든 패킷 처리
         const decodedPacket = GamePacket.decode(payload);
-        console.log(`decode:  ${JSON.stringify(decodedPacket)}`);
+        // console.log(`decode:  ${JSON.stringify(decodedPacket)}`);
+
         const handler = getProtoPacketType(payloadOneofCase);
         if (handler) {
           await handler(socket, decodedPacket);
@@ -54,8 +58,5 @@ export const onData = (socket) => async (data) => {
   }
 };
 export const getPacketTypeName = (packetType) => {
-  return (
-    Object.keys(PAYLOAD_ONEOF_CASE).find((key) => PAYLOAD_ONEOF_CASE[key] === packetType) ||
-    'Unknown packet type'
-  );
+  return Object.keys(PAYLOAD_ONEOF_CASE).find((key) => PAYLOAD_ONEOF_CASE[key] === packetType) || 'Unknown packet type';
 };

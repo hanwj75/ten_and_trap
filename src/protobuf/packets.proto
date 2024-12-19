@@ -150,6 +150,7 @@ message S2CGameStartNotification {
     GameStateData gameState = 1;
     repeated UserData users = 2;
     repeated CharacterPositionData characterPositions = 3;
+    int64 tagger = 4;
 }
 
 message C2SPositionUpdateRequest {
@@ -162,7 +163,7 @@ message S2CPositionUpdateNotification {
 }
 
 message C2SUseCardRequest {
-    int32 cardId = 1;
+    CardType cardType = 1;
     int64 targetUserId = 2; // 타겟 없으면 0
 }
 
@@ -172,9 +173,15 @@ message S2CUseCardResponse { // 성공 여부만 반환하고 대상 유저 효�
 }
 
 message S2CUseCardNotification {
-    int32 cardId = 1;
+    CardType cardType = 1;
     int64 userId = 2;
     int64 targetUserId = 3; // 타겟 없으면 0
+}
+
+message S2CCardEffectNotification {
+    CardType cardType = 1;
+    int64 userId = 2;
+    bool success = 3;
 }
 
 message S2CUserUpdateNotification {
@@ -185,17 +192,39 @@ message S2CPhaseUpdateNotification {
     PhaseType phaseType = 1; // DAY 1, EVENING 2, END 3
     int64 nextPhaseAt = 2; // 다음 페이즈 시작 시점(밀리초 타임스탬프)
     repeated CharacterPositionData characterPositions = 3; // 변경된 캐릭터 위치
+    int64 tagger = 4;
 }
 
-message S2CGameWinNotification {
-    int32 ranking = 1;
-    string winner = 2;
+message C2SPhaseChangeRequest {
+
+}
+
+message C2SReactionRequest {
+    ReactionType reactionType = 1; // NOT_USE_CARD = 1
+}
+
+message S2CReactionResponse {
+    bool success = 1;
+    GlobalFailCode failCode = 2;
+}
+
+message C2SDestroyCardRequest {
+    repeated CardData destroyCards = 1;
+}
+
+message S2CDestroyCardResponse {
+    repeated CardData handCards = 1;
+}
+
+message C2SDestroyCardRandomRequest {
+
 }
 
 message S2CGameEndNotification {
-    string loser = 1;
-    string winner = 2;
+    repeated int64 winners = 1;
+    WinType winType = 2;
 }
+
 
 message CardData {
     CardType type = 1;
@@ -215,7 +244,7 @@ message GamePacket {
 
 //  로그인 , 회원가입
 C2SRegisterRequest registerRequest= 1;
-     
+
 S2CRegisterResponse registerResponse=2;
 
 C2SLoginRequest loginRequest= 3;
@@ -276,16 +305,27 @@ S2CUseCardResponse useCardResponse = 26; // 성공 여부만 반환하고 대상
 
 S2CUseCardNotification useCardNotification = 27;
 
+S2CCardEffectNotification cardEffectNotification = 29;
+
 // 유저 상태 동기화
 S2CUserUpdateNotification userUpdateNotification = 33;
 
 S2CPhaseUpdateNotification phaseUpdateNotification = 34;
 
-S2CGameWinNotification gameWinNotification = 46;
+// 리액션
+C2SReactionRequest reactionRequest = 35;
+
+S2CReactionResponse reactionResponse = 36;
+
+C2SDestroyCardRequest destroyCardRequest = 37;
+
+S2CDestroyCardResponse destroyCardResponse = 38;
 
 S2CGameEndNotification gameEndNotification =39;
 
+C2SDestroyCardRandomRequest destroyCardRandomRequest = 46;
 
+C2SPhaseChangeRequest phaseChangeRequest = 47;
     }
 }
 
@@ -329,8 +369,8 @@ enum CharacterStateType {
     DEATH_MATCH_TURN_STATE = 4; // 현피 중 자신의 턴
     FLEA_MARKET_TURN = 5; // 플리마켓 자신의 턴
     FLEA_MARKET_WAIT = 6; // 플리마켓 턴 대기 상태
-    GUERRILLA_SHOOTER = 7; // 게릴라 시전자
-    GUERRILLA_TARGET = 8; // 게릴라 대상
+    GUERRILLA_SHOOTER = 7; // 다 버려 시전자
+    GUERRILLA_TARGET = 8; // 다 버려 대상
     BIG_BBANG_SHOOTER = 9; // 난사 시전자
     BIG_BBANG_TARGET = 10; // 난사 대상
     ABSORBING = 11; // 흡수 중
@@ -338,6 +378,8 @@ enum CharacterStateType {
     HALLUCINATING = 13; // 신기루 중
     HALLUCINATION_TARGET = 14; // 신기루 대상
     CONTAINED = 15; // 감금 중
+    THROW_AWAY_TARGET = 16; // 버려 대상
+    THROW_AWAY_ALL_TARGET = 17; // 다 버려 대상
 }
 
 enum CardType {
@@ -380,9 +422,20 @@ enum RoleType {
     PSYCHOPATH = 4;
 }
 
+enum WinType {
+    TARGET_AND_BODYGUARD_WIN = 0;
+    HITMAN_WIN = 1;
+    PSYCHOPATH_WIN = 2;
+    }
+
 enum RoomStateType {
     WAIT = 0;
     PREPARE = 1;
     INGAME = 2;
+}
+
+enum ReactionType {
+    NONE_REACTION = 0;
+    NOT_USE_CARD = 1;
 }
 

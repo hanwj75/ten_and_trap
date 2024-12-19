@@ -14,12 +14,13 @@ export let RoomStateType = null;
 export let CharacterStateType = null;
 export let CharacterType = null;
 export let PhaseType = null;
+export let WinType = null;
 export const loadProtos = async () => {
   try {
     const root = await protobuf.load(PROTO_PATH);
     GamePacket = root.lookupType('GamePacket');
     if (GamePacket) {
-      console.log(`성공적으로 로드됨: ${GamePacket}`);
+      // console.log(`성공적으로 로드됨: ${GamePacket}`);
     }
     GlobalFailCode = root.lookupEnum('GlobalFailCode');
 
@@ -34,6 +35,8 @@ export const loadProtos = async () => {
     CharacterType = root.lookupEnum('CharacterType');
 
     PhaseType = root.lookupEnum('PhaseType');
+
+    WinType = root.lookupEnum('WinType');
     if (
       GlobalFailCode &&
       CardType &&
@@ -41,9 +44,10 @@ export const loadProtos = async () => {
       RoomStateType &&
       CharacterStateType &&
       CharacterType &&
-      PhaseType
+      PhaseType &&
+      WinType
     ) {
-      console.log('모든 enum 타입 로드 성공');
+      // console.log('모든 enum 타입 로드 성공');
     }
   } catch (err) {
     console.error('Proto 파일 로드 중 오류 발생:', err);

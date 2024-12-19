@@ -5,14 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "migrate": "node src/db/migration/createSchemas.js"
+    "api": "nodemon src/apiLoginServer.js",
+    "migrate": "node src/db/migration/createSchemas.js",
+    "bulltest": "nodemon src/init/redis/bull.js",
+    "start": "node src/server.js"
   },
   "repository": "https://github.com/hanwj75/ten_and_trap.git",
   "author": "hanwj75 <wjws9608@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@bull-board/api": "^6.5.3",
+    "@bull-board/express": "^6.5.3",
+    "@bull-board/ui": "^6.5.3",
+    "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
+    "bull": "^4.16.4",
     "dotenv": "^16.4.5",
+    "express": "^4.21.2",
     "fs": "^0.0.1-security",
     "ioredis": "^5.4.1",
     "joi": "^17.13.3",
@@ -23,6 +32,7 @@
     "protobufjs": "^7.4.0",
     "redis": "^4.7.0",
     "redis-cli": "^2.1.2",
+    "seedrandom": "^3.0.5",
     "uuid": "^11.0.3"
   },
   "devDependencies": {

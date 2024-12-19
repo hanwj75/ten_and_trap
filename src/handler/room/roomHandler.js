@@ -1,5 +1,5 @@
 import Room from '../../classes/models/room.class.js';
-import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
+import { getAllUser, getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { packetType } from '../../constants/header.js';
@@ -144,12 +144,7 @@ export const joinRoomHandler = async (socket, payload) => {
 
     roomData.users = await JSON.parse(roomData.users); // 기존 유저 목록 가져오기
 
-    sendNotificationToUsers(
-      roomData.users,
-      joinRoomNotificationPayload,
-      packetType.JOIN_ROOM_NOTIFICATION,
-      0,
-    );
+    sendNotificationToUsers(roomData.users, joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0);
     if (roomData.users.length >= roomData.maxUserNum) {
       console.error('최대 인원입니다.');
       const joinRoomPayload = {
@@ -214,9 +209,9 @@ export const joinRandomRoomHandler = async (socket, payload) => {
 
     //방 목록이 없을경우
     if (roomKeys.length > 0) {
-      console.log('방 키들:', roomKeys);
+      // console.log('방 키들:', roomKeys);
     } else {
-      console.log('해당 방이 존재하지 않습니다.');
+      // console.log('해당 방이 존재하지 않습니다.');
       const joinRandomRoomPayload = {
         joinRandomRoomResponse: {
           success: false,
@@ -236,7 +231,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       const randomRoomKey = allRooms[randomIndex];
       roomData = await redis.getAllFieldsFromHash(`room:${randomRoomKey.id}`);
     } else {
-      console.log('해당되는 방이 존재하지 않습니다.');
+      // console.log('해당되는 방이 존재하지 않습니다.');
       const joinRandomRoomPayload = {
         joinRandomRoomResponse: {
           success: false,
@@ -275,12 +270,7 @@ export const joinRandomRoomHandler = async (socket, payload) => {
       },
     };
 
-    sendNotificationToUsers(
-      roomData.users,
-      joinRoomNotificationPayload,
-      packetType.JOIN_ROOM_NOTIFICATION,
-      0,
-    );
+    sendNotificationToUsers(roomData.users, joinRoomNotificationPayload, packetType.JOIN_ROOM_NOTIFICATION, 0);
     // 유저를 방의 유저 목록에 추가
     roomData.users.push(newUserInfo);
 
@@ -371,12 +361,7 @@ export const leaveRoomHandler = async (socket, payload) => {
           userId: removeUser.id,
         },
       };
-      sendNotificationToUsers(
-        users,
-        leaveRoomNotificationPayload,
-        packetType.LEAVE_ROOM_NOTIFICATION,
-        0,
-      );
+      sendNotificationToUsers(users, leaveRoomNotificationPayload, packetType.LEAVE_ROOM_NOTIFICATION, 0);
 
       const roomOwnerId = removeUser.id === Number(getOwnerId);
 

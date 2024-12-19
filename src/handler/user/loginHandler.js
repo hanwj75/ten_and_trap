@@ -1,15 +1,12 @@
-import jwt from 'jsonwebtoken';
 import JoiUtils from '../../utils/joi.util.js';
-import { packetType } from '../../constants/header.js';
+import { PACKET_TYPE } from '../../constants/header.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import bcrypt from 'bcrypt';
-import { updateUserLogin, findUserById } from '../../db/user/user.db.js';
-import envFiles from '../../constants/env.js';
-import { addUser, findUser } from '../../sessions/user.session.js';
+import { addUser } from '../../sessions/user.session.js';
 import User from '../../classes/models/user.class.js';
-import { CharacterType, GlobalFailCode } from '../../init/loadProto.js';
+import { GlobalFailCode } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
-import Character from '../../classes/models/character.class.js';
+import axios from 'axios';
+import { handleError } from '../../utils/error/errorHandler.js';
 /**
  *
  * @desc 로그인
@@ -18,127 +15,37 @@ import Character from '../../classes/models/character.class.js';
  */
 export const loginHandler = async (socket, payload) => {
   try {
-    console.log(`login:${payload.loginRequest}`);
+    const loginUrl = 'http://login-server:3334';
+    const loginData = payload.loginRequest;
+    await axios.post(`${loginUrl}/login`, { loginData, socket });
+
+    //여기서 서버 기능을 불러와서 일을하고
     const { email, password } = await JoiUtils.validateSignIn(payload.loginRequest);
 
-    // 아이디 존재 검증
-    const checkExistId = await findUserById(email);
-
-    if (!checkExistId) {
-      return makeResponse(
-        socket,
-        false,
-        '아이디 또는 비밀번호가 잘못되었습니다.',
-        '',
-        '',
-        GlobalFailCode.values.AUTHENTICATION_FAILED,
-      );
-    }
-
-    // 비밀번호 존재 검증
-    const checkPassword = await bcrypt.compare(password, checkExistId.password);
-    if (!checkPassword) {
-      return makeResponse(
-        socket,
-        false,
-        '아이디 또는 비밀번호가 잘못되었습니다.',
-        '',
-        '',
-        GlobalFailCode.values.AUTHENTICATION_FAILED,
-      );
-    }
-
-    // 중복 로그인 방지
-    const isExistUser = await findUser(checkExistId.nickName);
-
-    if (isExistUser) {
-      return makeResponse(
-        socket,
-        false,
-        '이미 접속중인 아이디',
-        '',
-        '',
-        GlobalFailCode.values.AUTHENTICATION_FAILED,
-      );
-    }
-    const stateInfo = { state: 0, nextState: 0, nextStateAt: 0, stateTargetUserId: 0 };
-    // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
-    const loginCharacter = new Character(1, 3, 5, 0, stateInfo, [], [], [], 1, 2);
+    const checkExistId = await redis.getAllFieldsFromHash(`loginData${email}`);
 
     // 유저 클래스 생성
-    const loginUser = new User(
-      checkExistId.id,
-      socket,
-      email,
-      checkExistId.nickName,
-      null,
-      loginCharacter,
-      { x: 0, y: 0 },
-    );
+    const loginUser = new User(Number(checkExistId.id), socket, email, null, checkExistId.nickName);
 
     await addUser(loginUser);
-    await updateUserLogin(email);
 
-    // 토큰 생성
-    const accessToken = jwt.sign(
-      {
-        userId: checkExistId.userId,
-      },
-      envFiles.jwt.ACCESS_TOKEN_SECRET_KEY,
-      { expiresIn: '1h' },
-    );
-
-    const totalToken = `Bearer ${accessToken}`;
-    // Response용
-    const userInfoToResponse = {
-      id: checkExistId.id,
-      nickname: checkExistId.nickName,
-      character: loginCharacter, //JSON.stringify({ characterType: 1 }),
-    };
-
-    // Redis용
-    const userInfoToRedis = {
-      id: checkExistId.id,
-      nickName: checkExistId.nickName,
-      joinRoom: null,
-      characterType: loginCharacter.characterType,
-      roleType: loginCharacter.roleType,
-      hp: loginCharacter.hp,
-      weapon: loginCharacter.weapon,
-      stateInfo: JSON.stringify(loginCharacter.stateInfo),
-      equips: JSON.stringify(loginCharacter.equips), // 배열을 JSON 문자열로 변환
-      debuffs: JSON.stringify(loginCharacter.debuffs), // 배열을 JSON 문자열로 변환
-      handCards: JSON.stringify(loginCharacter.handCards), // 배열을 JSON 문자열로 변환
-      bbangCount: loginCharacter.bbangCount,
-      handCardsCount: loginCharacter.handCardsCount,
-    };
-
-    await redis.addRedisToHash(`user:${checkExistId.id}`, userInfoToRedis);
-    return makeResponse(
-      socket,
-      true,
-      'Login Success',
-      totalToken,
-      userInfoToResponse,
-      GlobalFailCode.values.NONE_FAILCODE,
-    );
+    // 이쪽서버 세션에 추가가 필요
+    const totalToken = `Bearer ${redis.getRedis(email)}`;
+    const userInfoToResponse = await redis.getAllFieldsFromHash(`user:${email}`);
+    await redis.delRedisByKey(`loginData${email}`);
+    await redis.delRedisByKey(`user:${email}`);
+    return makeResponse(socket, true, 'Login Success', totalToken, userInfoToResponse, GlobalFailCode.values.NONE_FAILCODE);
   } catch (err) {
-    console.error(`로그인 에러`, err);
+    handleError(socket, err);
   }
 };
 
 const makeResponse = (socket, success, message, token, userInfo, failCode) => {
-  const LoginResponse = {
-    loginResponse: {
-      success: success,
-      message: message,
-      token: token,
-      myInfo: userInfo,
-      failCode: failCode,
-    },
+  const loginPayload = {
+    loginResponse: { success, message, token, myInfo: userInfo, failCode },
   };
 
-  const loginResponse = createResponse(LoginResponse, packetType.LOGIN_RESPONSE, 0);
+  const loginResponse = createResponse(loginPayload, PACKET_TYPE.LOGIN_RESPONSE, 0);
   socket.write(loginResponse);
 
   return;

@@ -1,16 +1,5 @@
 class Character {
-  constructor(
-    characterType,
-    roleType,
-    hp,
-    weapon,
-    stateInfo,
-    equips,
-    debuffs,
-    handCards,
-    bbangCount,
-    handCardsCount,
-  ) {
+  constructor(characterType, roleType, hp, weapon, stateInfo, equips, debuffs, handCards, bbangCount, handCardsCount) {
     this.characterType = characterType;
     this.roleType = roleType;
     this.hp = hp;
