@@ -68,7 +68,12 @@ export const onEnd = (socket) => async () => {
         const notification = { leaveRoomNotification: { userId: removedUser.id } };
         sendNotificationToUsers(users, notification, PACKET_TYPE.LEAVE_ROOM_NOTIFICATION, 0);
 
-        // await redis.updateRedisToHash(leaveRoomKey, 'users', users);
+        if (users.length <= 1) {
+          const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
+          sendNotificationToUsers(users, roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0);
+          await gameOnEndNotification(leaveRoomKey); // 게임 종료 처리
+          await redis.delRedisByKey(`room:${leaveRoomKey}`); // 방 삭제
+        }
         if (roomOwnerId) {
           const roomPayload = { leaveRoomResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
           sendNotificationToUsers(users, roomPayload, PACKET_TYPE.LEAVE_ROOM_RESPONSE, 0);
