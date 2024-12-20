@@ -39,7 +39,7 @@ export const throwAwayYourCard = async (userData, opponentData, roomData) => {
       // console.log('i have shield');
     } else {
       if (opponentCount > 0) {
-        const randomIndex = Math.floor(Math.random() * opponentCount);
+        const randomIndex = Math.floor(Math.random() * opponentHand.length);
 
         if (opponentHand[randomIndex]) {
           opponentHand[randomIndex].count--;
