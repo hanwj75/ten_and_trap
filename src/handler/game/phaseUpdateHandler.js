@@ -34,14 +34,14 @@ export const phaseUpdateHandler = async (socket, room, nextState) => {
     const isWinner = users.findIndex((user) => user.character.handCardsCount == 10);
 
     if (phase === '3') {
-      console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      // console.log(`낮으로 전환합니다. 현재 PhaseType: ${phase}.`);
       if (isWinner !== -1) {
         gameEndNotification(socket, room.id);
       }
       await drawCard(curTagger, room);
       await redis.updateRedisToHash(room.id, `phase`, 1);
     } else if (phase === '1') {
-      console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
+      // console.log(`밤으로 전환합니다. 현재 PhaseType: ${phase}.`);
       await redis.updateRedisToHash(room.id, `phase`, 3);
       await redis.updateRedisToHash(room.id, `tagger`, nextTagger); // 술래 변경 저장
     }
@@ -102,7 +102,7 @@ const runInterval = async (socket, roomId, prevTime) => {
   modifyGameData(room.id, { currentIndex: game.currentIndex });
   const nextState = intervals[game.currentIndex];
   const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
-  console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
+  // console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
   await currentQueue.add({ socket, room, nextState, jobType: 1 }, { attempts: 3, backoff: 500, removeOnComplete: true });
 
   // 이전 페이즈 시작했던시간이랑 지금 페이즈 시작시간 계산해서 딜레이된 시간 수정
