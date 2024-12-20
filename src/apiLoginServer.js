@@ -81,8 +81,8 @@ app.post('/login', async (req, res) => {
 
     await redis.addRedisToHash(`user:${checkExistId.id}`, userInfoToRedis);
     return res.json({ success: true });
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+    console.error(`로그인 서버 에러`, err);
   }
 });
 
