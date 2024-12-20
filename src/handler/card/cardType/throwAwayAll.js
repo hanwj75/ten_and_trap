@@ -39,7 +39,7 @@ export const throwAwayAll = async (userData, roomData) => {
         //실드 있다면 나중에 reactionHandler에서 적용
       } else {
         if (opponentCount > 0) {
-          const randomIndex = Math.floor(Math.random() * opponentCount);
+          const randomIndex = Math.floor(Math.random() * opponentHand.length);
 
           if (opponentHand[randomIndex]) {
             opponentHand[randomIndex].count--;
