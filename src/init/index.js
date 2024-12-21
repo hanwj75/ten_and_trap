@@ -7,7 +7,6 @@ import { initBull } from './redis/bull/bull.js';
 const initServer = async () => {
   try {
     await loadProtos();
-    await loadGameAssets();
     await connectRedis();
     await redis.allRedisDateDel(); //서버 재실행시 데이터 전부 삭제
     await initBull();
