@@ -14,6 +14,7 @@
 ---
 
 **게임 규칙**<br>
+<img src="https://github.com/user-attachments/assets/c5e13984-b4a1-4f7f-9664-45c46e931804" width="600">
 
 - 플레이어 : 2 ~ 7인 (5명 권장)
 - 낮(30초)과 밤(10초)으로 이루어진 한 턴이 반복됩니다. (승자가 나올 때 까지)
@@ -29,6 +30,7 @@
 - 지연을 최소화하는 위치 동기화
 - 턴 마다 이루어지는 작업에 순서를 보장하여 안정적인 턴제 게임 구현
 - 다양한 컨텐츠(카드, 캐릭터, 게임 룰) 구현
+- 효율성과 일관성을 위해 Docker 사용용
 
 ## 서비스 아키텍처
 
@@ -72,10 +74,19 @@
 
   술래가 사용한 카드의 타겟이 되면 타겟이 된 유저는 카드 효과를 받고 턴을 넘길지 아니면 방어 카드를 사용해서 카드 효과를 무효화할지 선택 할 수 있습니다.
 
+## 기술 기록
+
+- [Bull Queue](https://www.notion.so/teamsparta/BULL-ce55bf912fd541208648e459bd994a32?pvs=4)
+- [Docker&Docker-compose](https://www.notion.so/teamsparta/Docker-Docker-compose-247e9943e4b243a1923f075a420a543b?pvs=4)
+- [Redis](https://www.notion.so/teamsparta/Redis-818f2dd3787c4cdfb7a052d3b5734538?pvs=4)
+
 ## 트러블 슈팅
 
 - [[AWS EC2]Docker 배포 트러블슈팅](https://www.notion.so/teamsparta/AWS-DOCKER-2f412e3f399b4d8dac2150f506309d0d?pvs=4)
 - [Bull queue 작섭 대기열 트러블슈팅](https://www.notion.so/teamsparta/Bull-778c1ea71c5349dfa62256b1198e7d49?pvs=4)
+- [게임 서버와 로그인서버의 분리 트러블슈팅](https://www.notion.so/teamsparta/d08ef6b80e474dfc893c94c42bb4098e?pvs=4)
+- [위치 동기화 트러블슈팅](https://www.notion.so/teamsparta/03b2678d36b74a009f605b95952dfee2?pvs=4)
+- [페이즈 업데이트 트러블슈팅](https://www.notion.so/teamsparta/8210fb9ea4f048e982e9a4086ee36c2e?pvs=4)
 
 ## 기술 스택
 
@@ -84,7 +95,6 @@
    <img src="https://img.shields.io/badge/Node.js-5FA04E.svg?style=for-the-badge&logo=node.js&logoColor=20232a" />
     <img src="https://img.shields.io/badge/TCP/IP-FF8700.svg?style=for-the-badge&logo=TCP &logoColor=20232a" />
      <img src="https://img.shields.io/badge/Protobuf-4D9FE7.svg?style=for-the-badge&logo=protobufjs&logoColor=20232a" />
-
 
 - Client
 
@@ -100,3 +110,7 @@
   <img src="https://img.shields.io/badge/amazonec2-FF9900.svg?style=for-the-badge&logo=amazonec2&logoColor=white" />
   <img src="https://img.shields.io/badge/docker-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white" />
    <img src="https://img.shields.io/badge/Bull Queue-4D9FE7.svg?style=for-the-badge&logo=redbull&logoColor=20232a" />
+
+## 노션
+
+- [팀 노션](https://www.notion.so/teamsparta/11-6faedb39e4534c9e9b4ea69937b5048e)
