@@ -1,5 +1,6 @@
 import { PACKET_TYPE } from '../../constants/header.js';
-import { getUserBySocket, modifyUserData, findUsersByJoinRoom } from '../../sessions/user.session.js';
+import { getGameById, switchOn } from '../../sessions/game.session.js';
+import { getUserBySocket, findUsersByJoinRoom } from '../../sessions/user.session.js';
 import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { handleError } from '../../utils/error/errorHandler.js';
@@ -19,23 +20,24 @@ export const positionUpdateHandler = async (socket, payload) => {
     if (!user) {
       throw new CustomError(ErrorCodes.UNKNOWN_ERROR, `존재하지 않는 유저입니다.`);
     }
-    // 현재 사용자의 위치 업데이트
-    user.characterPosition = positions; // 사용자 객체에 현재 위치 저장
 
-    // Session에 유저 위치정보 업데이트
-    modifyUserData(user.id, { characterPosition: positions });
-
-    let users = await findUsersByJoinRoom(user.joinRoom);
-
-    // 모든 사용자 위치 데이터 생성
-    const userPositions = users.map((u) => ({ id: u.id, x: u.characterPosition.x, y: u.characterPosition.y }));
-
-    // 현재 사용자의 위치 추가
+    // 현재 사용자의 위치 갱신
+    let game = await getGameById(user.joinRoom);
     const currentUserPosition = { id: user.id, x: positions.x, y: positions.y };
+    game.userPositions = [...game.userPositions, currentUserPosition];
 
-    const notification = { positionUpdateNotification: { characterPositions: [...userPositions, currentUserPosition] } };
-
-    sendNotificationToUsers(users, notification, PACKET_TYPE.POSITION_UPDATE_NOTIFICATION, 0);
+    // 스위치 켜졌을 때만 notification 보내기
+    if (game.positionUpdateSwitch == true) {
+      let users = await findUsersByJoinRoom(user.joinRoom);
+      const notification = { positionUpdateNotification: { characterPositions: game.userPositions } };
+      sendNotificationToUsers(users, notification, PACKET_TYPE.POSITION_UPDATE_NOTIFICATION, 0);
+      // console.log('Position count');
+      game.positionUpdateSwitch = false;
+      // 일정 시간마다 스위치 온
+      setTimeout(function () {
+        switchOn(game.roomId);
+      }, 300);
+    }
   } catch (err) {
     handleError(socket, err);
   }

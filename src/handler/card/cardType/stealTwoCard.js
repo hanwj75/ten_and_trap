@@ -1,4 +1,3 @@
-import { getGameAssets } from '../../../init/assets.js';
 import { CharacterStateType } from '../../../init/loadProto.js';
 import { redis } from '../../../init/redis/redis.js';
 import CustomError from '../../../utils/error/customError.js';
@@ -62,7 +61,7 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
         opponentHand = [];
       } else {
         for (let i = 0; i < count; i++) {
-          const randomIndex = Math.floor(Math.random() * opponentCount);
+          const randomIndex = Math.floor(Math.random() * opponentHand.length);
           const existType = user.handCards.find((card) => card.type === opponentHand[randomIndex].type);
 
           if (existType) {
@@ -83,7 +82,7 @@ export const stealTwoCard = async (userData, opponentData, roomData) => {
     const updateRoomData = roomData.users.find((user) => user.id == opponent.id);
     updateRoomData.character.handCards = opponentHand;
     updateRoomData.character.handCardsCount = opponentCount;
-    updateRoomData.character.stateInfo = targetState;
+    updateRoomData.character.stateInfo = JSON.stringify(targetState);
     const updatedRoomData = { ...roomData, users: JSON.stringify(roomData.users) };
     await redis.addRedisToHash(`room:${roomData.id}`, updatedRoomData);
 

@@ -38,14 +38,16 @@ export const throwAwayYourCard = async (userData, opponentData, roomData) => {
       //실드 있다면 나중에 reactionHandler에서 적용
       console.log('i have shield');
     } else {
-      const randomIndex = Math.floor(Math.random() * opponentCount);
+      if (opponentCount > 0) {
+        const randomIndex = Math.floor(Math.random() * opponentHand.length);
 
-      if (opponentHand[randomIndex]) {
-        opponentHand[randomIndex].count--;
-        if (opponentHand[randomIndex].count <= 0) {
-          opponentHand.splice(randomIndex, 1);
+        if (opponentHand[randomIndex]) {
+          opponentHand[randomIndex].count--;
+          if (opponentHand[randomIndex].count <= 0) {
+            opponentHand.splice(randomIndex, 1);
+          }
+          opponentCount--;
         }
-        opponentCount--;
       }
     }
 
@@ -54,7 +56,7 @@ export const throwAwayYourCard = async (userData, opponentData, roomData) => {
     const updateCharacter = updateRoomData.character;
     updateCharacter.handCards = opponentHand;
     updateCharacter.handCardsCount = opponentCount;
-    updateRoomData.character.stateInfo = targetState;
+    updateRoomData.character.stateInfo = JSON.stringify(targetState);
 
     const users = JSON.stringify(roomData.users);
     const updatedRoomData = { ...roomData, users };

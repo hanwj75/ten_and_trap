@@ -105,7 +105,7 @@ export const useCardHandler = async (socket, payload) => {
     }
 
     const updateRoomData = roomData.users.find((user) => user.id == userData.id);
-    updateRoomData.character.stateInfo = userData.stateInfo;
+    updateRoomData.character.stateInfo = JSON.stringify(userData.stateInfo);
     updateRoomData.character.handCards = userData.handCards;
     updateRoomData.character.handCardsCount = userData.handCardsCount;
 

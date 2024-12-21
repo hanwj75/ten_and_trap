@@ -1,5 +1,5 @@
 import Room from '../../classes/models/room.class.js';
-import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
+import { getAllUser, getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
 import { GlobalFailCode } from '../../init/loadProto.js';
 import { createResponse } from '../../utils/response/createResponse.js';
 import { PACKET_TYPE } from '../../constants/header.js';

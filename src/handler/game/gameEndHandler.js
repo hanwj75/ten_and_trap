@@ -5,6 +5,7 @@ import { WinType } from '../../init/loadProto.js';
 import { redis } from '../../init/redis/redis.js';
 import { modifyUserData } from '../../sessions/user.session.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
+import { getRemoveQueue, queuesSessions } from '../../init/redis/bull/bull.js';
 
 export const gameEndNotification = async (socket, roomId) => {
   try {
@@ -25,6 +26,9 @@ export const gameEndNotification = async (socket, roomId) => {
 
     sendNotificationToUsers(userData, notification, PACKET_TYPE.GAME_END_NOTIFICATION, 0);
 
+    const removeQueue = await getRemoveQueue();
+    await removeQueue(`${roomId}room-queue`);
+
     winners.forEach(async (user) => {
       await addGold(user);
       await addRankPoint(user);
@@ -38,6 +42,15 @@ export const gameEndNotification = async (socket, roomId) => {
       await redis.addRedisToHash(`user:${userId}`, redisInit); // redis 초기화
       await modifyUserData(userId, { joinRoom: null }); // userSession 초기화
     });
+
+    const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
+    const currentQueueIndex = queuesSessions.findIndex((queue) => queue.roomId == roomId);
+    await currentQueue.obliterate({ force: true });
+    await currentQueue.close();
+    await redis.delRedisByKey(`bull:${roomId}room-queue:id`);
+    if (currentQueueIndex !== -1) {
+      queuesSessions.splice(currentQueueIndex, 1);
+    }
 
     await redis.delRedisByKey(`room:${roomId}`);
   } catch (err) {
@@ -68,6 +81,18 @@ export const gameOnEndNotification = async (roomId) => {
       await redis.addRedisToHash(`user:${userId}`, redisInit); // redis 초기화
       await modifyUserData(userId, { joinRoom: null }); // userSession 초기화
     });
+
+    const removeQueue = await getRemoveQueue();
+    await removeQueue(`${roomId}room-queue`);
+
+    const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
+    const currentQueueIndex = queuesSessions.findIndex((queue) => queue.roomId == roomId);
+    await currentQueue.obliterate({ force: true });
+    await currentQueue.close();
+    await redis.delRedisByKey(`bull:${roomId}room-queue:id`);
+    if (currentQueueIndex !== -1) {
+      queuesSessions.splice(currentQueueIndex, 1);
+    }
 
     // Redis에서 방 데이터 삭제
     await redis.delRedisByKey(`room:${roomId}`);

@@ -1,18 +1,22 @@
+import { BullAdapter } from '@bull-board/api/bullAdapter.js';
 import CharacterPosition from '../../classes/models/characterPosition.class.js';
 import GameState from '../../classes/models/gameState.class.js';
 import { RANDOM_POSITIONS } from '../../constants/characterPositions.js';
 import { PACKET_TYPE } from '../../constants/header.js';
 import { GlobalFailCode, PhaseType } from '../../init/loadProto.js';
+import { getAddQueue, queueOptions, queuesSessions } from '../../init/redis/bull/bull.js';
 import { redis } from '../../init/redis/redis.js';
 import { addGame } from '../../sessions/game.session.js';
-import { getUserBySocket, modifyUserData } from '../../sessions/user.session.js';
+import { getUserBySocket } from '../../sessions/user.session.js';
 import CustomError from '../../utils/error/customError.js';
 import { ErrorCodes } from '../../utils/error/errorCodes.js';
 import { handleError } from '../../utils/error/errorHandler.js';
 import { sendNotificationToUsers } from '../../utils/notifications/notification.js';
 import { createResponse } from '../../utils/response/createResponse.js';
-import { button } from './phaseUpdateHandler.js';
+import { button, phaseUpdateHandler } from './phaseUpdateHandler.js';
 import Game from '../../classes/models/game.class.js';
+import Queue from 'bull';
+import seedrandom from 'seedrandom';
 /**
  * @desc 게임준비
  * @author 한우종
@@ -52,27 +56,6 @@ export const gamePrepareHandler = async (socket, payload) => {
       throw new CustomError(ErrorCodes.NOT_ROOM_OWNER, `방장이 아닙니다.`);
     }
 
-    // 캐릭터 클래스 생성 (캐릭터 종류, 역할, 체력, 무기, 상태, 장비, 디버프, handCards, 뱅카운터, handCardsCount)
-    const handCards = [];
-    for (let i = 0; i < 2; i++) {
-      let randomType = Math.floor(Math.random() * 7) + 1;
-      const existType = handCards.find((card) => card.type === randomType);
-      if (existType) {
-        existType.count++;
-      } else {
-        handCards.push({ type: randomType, count: 1 });
-      }
-    }
-    // const handCards = [
-    //   { type: 1, count: 1 },
-    //   { type: 2, count: 1 },
-    //   { type: 3, count: 1 },
-    //   { type: 4, count: 1 },
-    //   { type: 5, count: 1 },
-    //   { type: 6, count: 1 },
-    //   { type: 7, count: 1 },
-    // ];
-
     //방 상태 업데이트
     if (currenRoomData.state === '0') {
       await redis.updateRedisToHash(currenUserRoomId, `state`, 1);
@@ -80,10 +63,29 @@ export const gamePrepareHandler = async (socket, payload) => {
 
       const users = JSON.parse(reCurrenRoomData.users);
       for (const user of users) {
+        // 랜덤 시드 부여
+        const rng = seedrandom(`user-${user.id}-${Date.now()}`);
+        const handCards = [];
+        let cardCount = 2;
+
+        // 술래라면 시작할때 드로우해서 3장으로 시작
+        if (user.id == reCurrenRoomData.ownerId) {
+          cardCount = 4;
+        }
+        const cardTypes = shuffle([1, 2, 3, 4, 5, 6, 7], rng, cardCount);
+        for (let i = 0; i < cardCount; i++) {
+          let randomType = cardTypes[i];
+          const existType = handCards.find((card) => card.type === randomType);
+          if (existType) {
+            existType.count++;
+          } else {
+            handCards.push({ type: randomType, count: 1 });
+          }
+        }
         user.character.characterType = 1;
         user.character.roleType = 1;
         user.character.handCards = handCards;
-        user.character.handCardsCount = handCards.length;
+        user.character.handCardsCount = cardCount;
 
         const userData = await redis.getAllFieldsFromHash(`user:${user.id}`);
         const userHandCards = JSON.stringify(handCards);
@@ -92,19 +94,72 @@ export const gamePrepareHandler = async (socket, payload) => {
           characterType: 1,
           roleType: 1,
           handCards: userHandCards,
-          handCardsCount: handCards.length,
+          handCardsCount: cardCount,
         };
         await redis.addRedisToHash(`user:${user.id}`, updatedUserData);
       }
 
       await redis.addRedisToHash(`room:${reCurrenRoomData.id}`, { ...reCurrenRoomData, users: JSON.stringify(users) });
-
       const roomData = await redis.getAllFieldsFromHash(`room:${currenUserRoomId}`);
       //준비 notification 쏴주는부분
       roomData.users = JSON.parse(roomData.users);
       const notification = { gamePrepareNotification: { room: roomData } };
 
       sendNotificationToUsers(users, notification, PACKET_TYPE.GAME_PREPARE_NOTIFICATION, 0);
+
+      // 새로운 작업 대기열 생성성
+      const queueName = `${currenUserRoomId}room-queue`;
+      const newQueue = new Queue(queueName, queueOptions);
+      const bullAdapter = new BullAdapter(newQueue);
+      const addQueue = await getAddQueue();
+      await addQueue(bullAdapter);
+      newQueue.roomId = currenUserRoomId;
+
+      queuesSessions.push(newQueue);
+
+      newQueue.process(async (job, done) => {
+        try {
+          const { jobType } = job.data;
+
+          if (+jobType === 0) {
+            const { loadjob } = job.data;
+
+            done();
+          }
+
+          if (+jobType === 1) {
+            const { socket, room, nextState } = job.data;
+            await phaseUpdateHandler(socket, room, nextState);
+            done();
+          }
+        } catch (err) {
+          throw err;
+        }
+      });
+
+      newQueue.on('failed', async (job, err) => {
+        console.error(`Job failed after ${job.attemptsMade} attempts`, err.message);
+
+        if (job.attemptsMade === 1 && !newQueue.isPaused()) {
+          // console.log('Pausing queue due to initial failure.');
+          await newQueue.pause();
+        }
+
+        if (job.attemptsMade >= job.opts.attempts) {
+          // console.log('Retry limit exceeded!');
+          // 작업 재시도 초과 시 처리할 로직
+        }
+      });
+
+      newQueue.on('completed', async (job) => {
+        // console.log(`Job completed successfully: ${job.id}`);
+        if (newQueue.isPaused()) {
+          await newQueue.resume();
+        }
+      });
+
+      const loadjob = `success to add queue for ${currenUserRoomId}room!`;
+      await newQueue.add({ loadjob, jobType: 0 }, { attempts: 3, backoff: 500, removeOnComplete: true });
 
       //게임 준비 응답
       const gamePayload = { gamePrepareResponse: { success: true, failCode: failCode.NONE_FAILCODE } };
@@ -144,9 +199,6 @@ export const gameStartHandler = async (socket, payload) => {
       const randomKey = Math.floor(Math.random() * Object.keys(RANDOM_POSITIONS).length) + 1;
       const randomPosition = RANDOM_POSITIONS[randomKey];
       const characterPosition = new CharacterPosition(user.id, randomPosition);
-
-      // Session에 유저 위치정보 업데이트
-      modifyUserData(user.id, { characterPosition: randomPosition });
       // 각 사용자 포지션을 넣어주는 부분
       positionData.push(characterPosition);
     }
@@ -157,7 +209,7 @@ export const gameStartHandler = async (socket, payload) => {
     const currentPhase = PhaseType.values.DAY;
     const countTime = Date.now() + 30000;
     const newState = new GameState(currentPhase, countTime);
-    const game = new Game(currenUserRoomId, null, 0);
+    const game = new Game(Number(currenUserRoomId), null, 0, positionData, true);
     addGame(game);
     const tagger = currenRoomData.ownerId;
     //게임 시작 notification
@@ -174,3 +226,12 @@ export const gameStartHandler = async (socket, payload) => {
     handleError(socket, err);
   }
 };
+
+function shuffle(array, rng, count) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+
+  return array.slice(0, count);
+}
