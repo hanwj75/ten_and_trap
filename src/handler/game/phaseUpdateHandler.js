@@ -93,7 +93,7 @@ const runInterval = async (socket, roomId, prevTime) => {
   // 유저가 없으면 인터벌 중지
   if (users.length === 0) {
     await removeGame(room.id);
-    // console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
+    console.log('방에 유저가 없으므로 인터벌을 중지합니다.');
     return;
   }
 
@@ -102,7 +102,7 @@ const runInterval = async (socket, roomId, prevTime) => {
   modifyGameData(room.id, { currentIndex: game.currentIndex });
   const nextState = intervals[game.currentIndex];
   const currentQueue = await queuesSessions.find((queue) => queue.roomId == roomId);
-  // console.log('currentRoomId for phaseUpdate', currentQueue.roomId);
+
   await currentQueue.add({ socket, room, nextState, jobType: 1 }, { attempts: 3, backoff: 500, removeOnComplete: true });
 
   // 이전 페이즈 시작했던시간이랑 지금 페이즈 시작시간 계산해서 딜레이된 시간 수정

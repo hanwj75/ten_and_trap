@@ -13,7 +13,7 @@ RUN yarn install
 COPY . .
 
 # 최종 이미지 단계
-FROM node:20
+FROM node:20-alpine
 
 WORKDIR /src
 

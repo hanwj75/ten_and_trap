@@ -10,7 +10,7 @@ import { redis } from '../../../init/redis/redis.js';
 export const invalidCard = async (userData, opponentData, roomData) => {
   const user = userData;
   user.stateInfo = JSON.parse(user.stateInfo);
-  user.stateInfo = stateInitData;
+  user.stateInfo = JSON.stringify(stateInitData);
 
   const opponent = opponentData;
   // redis에 상대 유저 정보 업데이트

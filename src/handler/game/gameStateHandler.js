@@ -24,7 +24,7 @@ import seedrandom from 'seedrandom';
  */
 export const gamePrepareHandler = async (socket, payload) => {
   try {
-    // console.log(`게임준비!`);
+    console.log(`게임준비!`);
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
     //현재 유저가 있는 방ID
@@ -120,11 +120,10 @@ export const gamePrepareHandler = async (socket, payload) => {
       newQueue.process(async (job, done) => {
         try {
           const { jobType } = job.data;
-          // console.log('jobType', jobType);
 
           if (+jobType === 0) {
             const { loadjob } = job.data;
-            // console.log(loadjob);
+
             done();
           }
 
@@ -142,18 +141,18 @@ export const gamePrepareHandler = async (socket, payload) => {
         console.error(`Job failed after ${job.attemptsMade} attempts`, err.message);
 
         if (job.attemptsMade === 1 && !newQueue.isPaused()) {
-          console.log('Pausing queue due to initial failure.');
+          // console.log('Pausing queue due to initial failure.');
           await newQueue.pause();
         }
 
         if (job.attemptsMade >= job.opts.attempts) {
-          console.log('Retry limit exceeded!');
+          // console.log('Retry limit exceeded!');
           // 작업 재시도 초과 시 처리할 로직
         }
       });
 
       newQueue.on('completed', async (job) => {
-        console.log(`Job completed successfully: ${job.id}`);
+        // console.log(`Job completed successfully: ${job.id}`);
         if (newQueue.isPaused()) {
           await newQueue.resume();
         }
@@ -178,7 +177,7 @@ export const gamePrepareHandler = async (socket, payload) => {
  */
 export const gameStartHandler = async (socket, payload) => {
   try {
-    // console.log(`게임시작!`);
+    console.log(`게임시작!`);
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
     if (!user) {
