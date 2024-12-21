@@ -14,7 +14,7 @@ import { handleError } from '../utils/error/errorHandler.js';
  */
 export const onEnd = (socket) => async () => {
   try {
-    // console.log('클라이언트 연결이 종료되었습니다.');
+    console.log('클라이언트 연결이 종료되었습니다.');
     const failCode = GlobalFailCode.values;
     const user = await getUserBySocket(socket);
 

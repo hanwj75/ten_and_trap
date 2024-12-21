@@ -31,11 +31,12 @@ export const positionUpdateHandler = async (socket, payload) => {
       let users = await findUsersByJoinRoom(user.joinRoom);
       const notification = { positionUpdateNotification: { characterPositions: game.userPositions } };
       sendNotificationToUsers(users, notification, PACKET_TYPE.POSITION_UPDATE_NOTIFICATION, 0);
+      // console.log('Position count');
       game.positionUpdateSwitch = false;
       // 일정 시간마다 스위치 온
       setTimeout(function () {
         switchOn(game.roomId);
-      }, 200);
+      }, 300);
     }
   } catch (err) {
     handleError(socket, err);

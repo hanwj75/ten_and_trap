@@ -13,9 +13,6 @@ import { leaveRoomHandler } from './room/leaveRoomHandler.js';
 import { reactionHandler } from './card/reactionHandler.js';
 import { destroyCardHandler, destroyCardRandomHandler } from './card/destroyCardHandler.js';
 import { phaseChangeHandler } from './game/phaseUpdateHandler.js';
-const testFunction = () => {
-  // console.log(`이거 지우고 넣으시면 됩니다.`);
-};
 
 const handlers = {
   // 회원가입 및 로그인
@@ -60,9 +57,7 @@ const handlers = {
   [PACKET_TYPE.USE_CARD_REQUEST]: {
     handler: useCardHandler,
   },
-  [PACKET_TYPE.USE_CARD_NOTIFICATION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
-  },
+
   [PACKET_TYPE.REACTION_REQUEST]: {
     handler: reactionHandler,
   },
@@ -73,23 +68,9 @@ const handlers = {
   [PACKET_TYPE.DESTROY_CARD_RANDOM_REQUEST]: {
     handler: destroyCardRandomHandler,
   },
-  //유저 정보 업데이트
-  [PACKET_TYPE.USER_UPDATE_NOTIFICATION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
-  },
-
-  // 페이즈 업데이트
-  [PACKET_TYPE.PHASE_UPDATE_NOTIFITION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
-  },
 
   [PACKET_TYPE.PHASE_CHANGE_REQUEST]: {
     handler: phaseChangeHandler,
-  },
-
-  // 게임 종료 알림
-  [PACKET_TYPE.GAME_END_NOTIFICATION]: {
-    handler: testFunction /*여기에 작성한 핸들러함수 넣어주시면 됩니다.*/,
   },
 };
 
